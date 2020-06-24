@@ -2,7 +2,7 @@ package com.oopsjpeg.snubot.command;
 
 import com.oopsjpeg.snubot.data.UserData;
 import com.oopsjpeg.snubot.react.ReactContainer;
-import com.oopsjpeg.snubot.react.ReactController;
+import com.oopsjpeg.snubot.react.ReactManager;
 import com.oopsjpeg.snubot.react.ReactRole;
 import com.oopsjpeg.snubot.util.PagedList;
 import com.oopsjpeg.snubot.util.Util;
@@ -141,7 +141,7 @@ public enum CommandEnum implements Command
                     MessageChannel channel = message.getChannel().block();
                     User author = message.getAuthor().get();
                     UserData data = getBot().getUserData(author);
-                    ReactController controller = getBot().getReactController();
+                    ReactManager manager = getBot().getReactManager();
 
                     if (!data.getSelections().hasMessage())
                         throw new CommandException("Select a message with `" + parent.format(SELECT) + "` first.");
@@ -151,9 +151,9 @@ public enum CommandEnum implements Command
                     if (args.length == 0)
                     {
                         String content = "Editing [message](" + data.getSelections().getMessageLink() + ") by " + Util.formatUser(selectedMessage.getAuthor().get()) + ".";
-                        if (controller.hasContainer(selectedMessage)) {
-                            ReactContainer container = controller.getContainer(selectedMessage);
-                            content += "\n" + container.getReactionList().size() + " emoji(s) linked to " + container.getRoleCount() + " role(s).";
+                        if (manager.hasContainer(selectedMessage)) {
+                            ReactContainer container = manager.getContainer(selectedMessage);
+                            content += "\n" + container.getEmoteList().size() + " emoji(s) linked to " + container.getRoleCount() + " role(s).";
                         }
                         content += "\n\nAdd a role: `" + parent.format(this) + " add <role> <emoji> [mode]`";
                         content += "\nRemove a role: `" + parent.format(this) + " remove <role>`";
@@ -186,9 +186,9 @@ public enum CommandEnum implements Command
                             if (type == null)
                                 throw new CommandException("Invalid role type specified.");
 
-                            controller.addRoleToEmoji(selectedMessage, emoji, role, type);
+                            manager.addRoleToEmoji(selectedMessage, emoji, role, type);
 
-                            getBot().getFirestore().saveReactContainer(controller.getOrAddContainer(selectedMessage));
+                            getBot().getFirestore().saveReactContainer(manager.getOrAddContainer(selectedMessage));
 
                             Util.send(channel, author, "Added **" + role.getName() + "** (" + type.getName() + ") to " + Util.emojiToString(emoji) + " on [message](" + data.getSelections().getMessageLink() + ").");
                         }
@@ -196,24 +196,24 @@ public enum CommandEnum implements Command
                         {
                             if (args.length < 2)
                                 throw new CommandException("Correct usage: `" + parent.format(this) + " remove <role>`");
-                            if (!controller.hasContainer(selectedMessage))
+                            if (!manager.hasContainer(selectedMessage))
                                 throw new CommandException("There are no reaction roles on this message.");
 
                             Role role = searchRole(guild, args[1]);
                             if (role == null)
                                 throw new CommandException("Invalid role specified.");
 
-                            controller.removeRoleFromAll(selectedMessage, role);
+                            manager.removeRoleFromAll(selectedMessage, role);
 
-                            getBot().getFirestore().saveReactContainer(controller.getContainer(selectedMessage));
+                            getBot().getFirestore().saveReactContainer(manager.getContainer(selectedMessage));
 
                             Util.send(channel, author, "Removed **" + role.getName() + "** from all reactions on [message](" + data.getSelections().getMessageLink() + ").");
                         }
                         else if (args[0].equalsIgnoreCase("update"))
                         {
-                            if (!controller.hasContainer(selectedMessage))
+                            if (!manager.hasContainer(selectedMessage))
                                 throw new CommandException("There are no reaction roles on this message.");
-                            controller.updateContainer(selectedMessage);
+                            manager.updateContainer(selectedMessage);
                             Util.send(channel, author, "Updated [message](" + data.getSelections().getMessageLink() + ").");
                         }
                         else throw new CommandException("Invalid edit command.");

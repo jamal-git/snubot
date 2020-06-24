@@ -11,7 +11,7 @@ import java.util.List;
 public class ReactContainer
 {
     private String id;
-    private List<ReactReaction> reactionList = new ArrayList<>();
+    private List<ReactEmote> emoteList = new ArrayList<>();
 
     public ReactContainer() {}
 
@@ -32,31 +32,31 @@ public class ReactContainer
         return Snowflake.of(id);
     }
 
-    @PropertyName("reaction_list")
-    public List<ReactReaction> getReactionList()
+    @PropertyName("emote_list")
+    public List<ReactEmote> getEmoteList()
     {
-        return reactionList;
+        return emoteList;
     }
 
-    @PropertyName("reaction_list")
-    public void setReactionList(List<ReactReaction> reactionList)
+    @PropertyName("emote_list")
+    public void setEmoteList(List<ReactEmote> emoteList)
     {
-        this.reactionList = reactionList;
+        this.emoteList = emoteList;
     }
 
     @Exclude
     public long getRoleCount() {
-        return reactionList.stream().map(ReactReaction::getRoleList).distinct().count();
+        return emoteList.stream().map(ReactEmote::getRoleList).distinct().count();
     }
 
     @Exclude
-    public ReactReaction getReaction(String emoji)
+    public ReactEmote getReaction(String emoji)
     {
-        return reactionList.stream().filter(reaction -> reaction.getEmoji().equals(emoji)).findAny().orElse(null);
+        return emoteList.stream().filter(emote -> emote.getEmoji().equals(emoji)).findAny().orElse(null);
     }
 
     @Exclude
-    public ReactReaction getOrAddReaction(String emoji) {
+    public ReactEmote getOrAddReaction(String emoji) {
         if (!hasReaction(emoji))
             addReaction(emoji);
         return getReaction(emoji);
@@ -66,18 +66,18 @@ public class ReactContainer
     public void addReaction(String emoji) {
         if (hasReaction(emoji))
             removeReaction(emoji);
-        reactionList.add(new ReactReaction(emoji));
+        emoteList.add(new ReactEmote(emoji));
     }
 
     @Exclude
     public void removeReaction(String emoji)
     {
-        reactionList.removeIf(reaction -> reaction.getEmoji().equals(emoji));
+        emoteList.removeIf(emote -> emote.getEmoji().equals(emoji));
     }
 
     @Exclude
     public boolean hasReaction(String emoji)
     {
-        return reactionList.stream().anyMatch(reaction -> reaction.getEmoji().equals(emoji));
+        return emoteList.stream().anyMatch(emote -> emote.getEmoji().equals(emoji));
     }
 }

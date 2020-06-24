@@ -6,14 +6,14 @@ import com.google.cloud.firestore.annotation.PropertyName;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReactReaction
+public class ReactEmote
 {
     private String emoji;
     private List<ReactRole> roleList = new ArrayList<>();
 
-    public ReactReaction() {}
+    public ReactEmote() {}
 
-    public ReactReaction(String emoji)
+    public ReactEmote(String emoji)
     {
         this.emoji = emoji;
     }

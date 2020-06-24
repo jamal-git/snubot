@@ -15,7 +15,7 @@ import java.util.List;
 
 import static com.oopsjpeg.snubot.react.ReactRole.Type.ONCE;
 
-public class ReactController
+public class ReactManager
 {
     private List<ReactContainer> containerList = new ArrayList<>();
 
@@ -33,9 +33,9 @@ public class ReactController
             if (container.hasReaction(emojiStr))
             {
                 // Give the reaction's roles to the user
-                ReactReaction reaction = container.getReaction(emojiStr);
+                ReactEmote emote = container.getReaction(emojiStr);
                 Member member = event.getMember().get();
-                reaction.getRoleList().forEach(role -> member.addRole(role.getSnowflake()).block());
+                emote.getRoleList().forEach(role -> member.addRole(role.getSnowflake()).block());
             }
         }
     }
@@ -54,9 +54,9 @@ public class ReactController
             if (container.hasReaction(emojiStr))
             {
                 // Remove the reaction's roles from the user
-                ReactReaction reaction = container.getReaction(emojiStr);
+                ReactEmote emote = container.getReaction(emojiStr);
                 Member member = user.asMember(event.getGuildId().get()).block();
-                reaction.getRoleList().stream()
+                emote.getRoleList().stream()
                         .filter(role -> role.getType() != ONCE)
                         .forEach(role -> member.removeRole(role.getSnowflake()).block());
             }
@@ -105,7 +105,7 @@ public class ReactController
         {
             ReactContainer container = getContainer(message);
             // Add each reaction in the container
-            container.getReactionList().forEach(reaction -> message.addReaction(Util.stringToEmoji(reaction.getEmoji())).block());
+            container.getEmoteList().forEach(emote -> message.addReaction(Util.stringToEmoji(emote.getEmoji())).block());
         }
     }
 
@@ -122,17 +122,17 @@ public class ReactController
         {
             String emojiStr = Util.emojiToString(emoji);
             ReactContainer container = getContainer(message);
-            ReactReaction reaction = container.getReaction(emojiStr);
+            ReactEmote emote = container.getReaction(emojiStr);
 
-            reaction.removeRole(role.getId().asString());
+            emote.removeRole(role.getId().asString());
 
-            if (reaction.getRoleList().isEmpty())
+            if (emote.getRoleList().isEmpty())
             {
                 container.removeReaction(emojiStr);
                 message.removeReactions(emoji).block();
             }
 
-            if (container.getReactionList().isEmpty())
+            if (container.getEmoteList().isEmpty())
             {
                 removeContainer(message);
             }
@@ -143,8 +143,8 @@ public class ReactController
     {
         if (hasContainer(message))
         {
-            for (ReactReaction reaction : new LinkedList<>(getContainer(message).getReactionList()))
-                removeRoleFromEmoji(message, Util.stringToEmoji(reaction.getEmoji()), role);
+            for (ReactEmote emote : new LinkedList<>(getContainer(message).getEmoteList()))
+                removeRoleFromEmoji(message, Util.stringToEmoji(emote.getEmoji()), role);
         }
     }
 }

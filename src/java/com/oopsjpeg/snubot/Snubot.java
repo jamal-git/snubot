@@ -4,7 +4,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.oopsjpeg.snubot.command.CommandEnum;
 import com.oopsjpeg.snubot.command.CommandListener;
 import com.oopsjpeg.snubot.data.UserData;
-import com.oopsjpeg.snubot.react.ReactController;
+import com.oopsjpeg.snubot.react.ReactManager;
 import com.oopsjpeg.snubot.util.BadSettingsException;
 import com.oopsjpeg.snubot.util.Settings;
 import discord4j.core.DiscordClient;
@@ -34,7 +34,7 @@ public class Snubot
     private FirestoreManager firestore;
     private GatewayDiscordClient gateway;
     private CommandListener commandListener;
-    private ReactController reactController;
+    private ReactManager reactManager;
 
     private List<UserData> userDataList;
 
@@ -65,17 +65,17 @@ public class Snubot
         // Set up ready event actions
         gateway.on(ReadyEvent.class).subscribe(e -> {
             userDataList = firestore.fetchUserDataList();
-            reactController.setContainerList(firestore.fetchReactContainerList());
+            reactManager.setContainerList(firestore.fetchReactContainerList());
             LOGGER.info("Logged in as " + e.getSelf().getUsername() + ".");
         });
         // Create command listener and add commands
         commandListener = new CommandListener(settings.get(Settings.PREFIX));
         commandListener.getCommandSet().addAll(Arrays.asList(CommandEnum.values()));
         gateway.on(MessageCreateEvent.class).subscribe(commandListener::onMessage);
-        // Create reaction controller
-        reactController = new ReactController();
-        gateway.on(ReactionAddEvent.class).subscribe(reactController::onReactAdd);
-        gateway.on(ReactionRemoveEvent.class).subscribe(reactController::onReactRemove);
+        // Create reaction manager
+        reactManager = new ReactManager();
+        gateway.on(ReactionAddEvent.class).subscribe(reactManager::onReactAdd);
+        gateway.on(ReactionRemoveEvent.class).subscribe(reactManager::onReactRemove);
         // Handle disconnect
         gateway.onDisconnect().block();
     }
@@ -133,9 +133,9 @@ public class Snubot
         return commandListener;
     }
 
-    public ReactController getReactController()
+    public ReactManager getReactManager()
     {
-        return reactController;
+        return reactManager;
     }
 
     public List<UserData> getUserDataList()
