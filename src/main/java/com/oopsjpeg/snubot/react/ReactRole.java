@@ -1,7 +1,7 @@
 package com.oopsjpeg.snubot.react;
 
-import com.google.cloud.firestore.annotation.Exclude;
 import discord4j.common.util.Snowflake;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 import java.util.Objects;
 
@@ -38,20 +38,18 @@ public class ReactRole
         this.type = type;
     }
 
-    @Exclude
+    @BsonIgnore
     public Snowflake getSnowflake()
     {
         return Snowflake.of(id);
     }
 
-    @Exclude
     @Override
     public boolean equals(Object o)
     {
         return o instanceof ReactRole && ((ReactRole) o).id.equals(id);
     }
 
-    @Exclude
     @Override
     public int hashCode()
     {

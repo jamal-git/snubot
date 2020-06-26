@@ -188,7 +188,7 @@ public enum CommandEnum implements Command
 
                             manager.addRoleToEmoji(selectedMessage, emoji, role, type);
 
-                            getBot().getFirestore().saveReactContainer(manager.getOrAddContainer(selectedMessage));
+                            getBot().getMongo().saveReactContainer(manager.getOrAddContainer(selectedMessage));
 
                             Util.send(channel, author, "Added **" + role.getName() + "** (" + type.getName() + ") to " + Util.emojiToString(emoji) + " on [message](" + data.getSelections().getMessageLink() + ").");
                         }
@@ -205,7 +205,7 @@ public enum CommandEnum implements Command
 
                             manager.removeRoleFromAll(selectedMessage, role);
 
-                            getBot().getFirestore().saveReactContainer(manager.getContainer(selectedMessage));
+                            getBot().getMongo().saveReactContainer(manager.getContainer(selectedMessage));
 
                             Util.send(channel, author, "Removed **" + role.getName() + "** from all reactions on [message](" + data.getSelections().getMessageLink() + ").");
                         }

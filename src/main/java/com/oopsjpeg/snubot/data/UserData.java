@@ -1,8 +1,8 @@
 package com.oopsjpeg.snubot.data;
 
-import com.google.cloud.firestore.annotation.DocumentId;
-import com.google.cloud.firestore.annotation.Exclude;
 import discord4j.common.util.Snowflake;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 public class UserData
 {
@@ -16,21 +16,27 @@ public class UserData
         this.id = id;
     }
 
-    @DocumentId
+    @BsonId
     public String getId()
     {
         return id;
     }
 
-    @Exclude
+    @BsonIgnore
     public Snowflake getSnowflake()
     {
         return Snowflake.of(id);
     }
 
-    @Exclude
+    @BsonIgnore
     public Selections getSelections()
     {
         return selections;
+    }
+
+    @BsonIgnore
+    public void setSelections(Selections selections)
+    {
+        this.selections = selections;
     }
 }

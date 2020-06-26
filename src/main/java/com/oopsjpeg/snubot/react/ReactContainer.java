@@ -1,9 +1,9 @@
 package com.oopsjpeg.snubot.react;
 
-import com.google.cloud.firestore.annotation.DocumentId;
-import com.google.cloud.firestore.annotation.Exclude;
-import com.google.cloud.firestore.annotation.PropertyName;
 import discord4j.common.util.Snowflake;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,62 +20,65 @@ public class ReactContainer
         this.id = id;
     }
 
-    @DocumentId
+    @BsonId
     public String getId()
     {
         return id;
     }
 
-    @Exclude
+    @BsonId
+    public void setId(String id)
+    {
+        this.id = id;
+    }
+
+    @BsonIgnore
     public Snowflake getSnowflake()
     {
         return Snowflake.of(id);
     }
 
-    @PropertyName("emote_list")
+    @BsonProperty("emote_list")
     public List<ReactEmote> getEmoteList()
     {
         return emoteList;
     }
 
-    @PropertyName("emote_list")
+    @BsonProperty("emote_list")
     public void setEmoteList(List<ReactEmote> emoteList)
     {
         this.emoteList = emoteList;
     }
 
-    @Exclude
+    @BsonIgnore
     public long getRoleCount() {
         return emoteList.stream().map(ReactEmote::getRoleList).distinct().count();
     }
 
-    @Exclude
+    @BsonIgnore
     public ReactEmote getReaction(String emoji)
     {
         return emoteList.stream().filter(emote -> emote.getEmoji().equals(emoji)).findAny().orElse(null);
     }
 
-    @Exclude
+    @BsonIgnore
     public ReactEmote getOrAddReaction(String emoji) {
         if (!hasReaction(emoji))
             addReaction(emoji);
         return getReaction(emoji);
     }
 
-    @Exclude
     public void addReaction(String emoji) {
         if (hasReaction(emoji))
             removeReaction(emoji);
         emoteList.add(new ReactEmote(emoji));
     }
 
-    @Exclude
     public void removeReaction(String emoji)
     {
         emoteList.removeIf(emote -> emote.getEmoji().equals(emoji));
     }
 
-    @Exclude
     public boolean hasReaction(String emoji)
     {
         return emoteList.stream().anyMatch(emote -> emote.getEmoji().equals(emoji));

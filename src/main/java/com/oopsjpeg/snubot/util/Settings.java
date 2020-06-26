@@ -9,6 +9,8 @@ public class Settings
 {
     public static final String TOKEN = "token";
     public static final String PREFIX = "prefix";
+    public static final String MONGO_HOST = "mongo_host";
+    public static final String MONGO_DATABASE = "mongo_database";
 
     private static final Properties DEFAULTS = new Properties();
 
@@ -16,14 +18,11 @@ public class Settings
     {
         DEFAULTS.put(TOKEN, "");
         DEFAULTS.put(PREFIX, "s!");
+        DEFAULTS.put(MONGO_HOST, "localhost");
+        DEFAULTS.put(MONGO_DATABASE, "snubot");
     }
 
     private final Properties properties = new Properties();
-
-    public Settings()
-    {
-        properties.putAll(DEFAULTS);
-    }
 
     public void load(FileReader fr) throws IOException
     {
@@ -37,7 +36,7 @@ public class Settings
 
     public String get(String key)
     {
-        return get(key, "");
+        return get(key, DEFAULTS.getProperty(key, ""));
     }
 
     public String get(String key, String defaultValue)

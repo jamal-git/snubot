@@ -7,10 +7,12 @@
     <groupId>com.oopsjpeg</groupId>
     <artifactId>snubot</artifactId>
     <version>1.0</version>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
@@ -22,23 +24,27 @@
                 <configuration>
                     <archive>
                         <manifest>
+                            <addClasspath>true</addClasspath>
                             <mainClass>com.oopsjpeg.snubot.Snubot</mainClass>
+                            <classpathPrefix>dependency-jars/</classpathPrefix>
                         </manifest>
                     </archive>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.2</version>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.5.1</version>
                 <executions>
                     <execution>
+                        <id>copy-dependencies</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>shade</goal>
+                            <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <minimizeJar>true</minimizeJar>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${project.build.directory}/dependency-jars/</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -53,20 +59,15 @@
             <version>3.1.0.RC2</version>
         </dependency>
         <dependency>
-            <groupId>com.google.firebase</groupId>
-            <artifactId>firebase-admin</artifactId>
-            <version>6.14.0</version>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>3.12.5</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.30</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.6</version>
-        </dependency>
-    </dependencies>
+   </dependencies>
 
 </project>

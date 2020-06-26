@@ -1,6 +1,5 @@
 package com.oopsjpeg.snubot;
 
-import com.google.auth.oauth2.GoogleCredentials;
 import com.oopsjpeg.snubot.command.CommandEnum;
 import com.oopsjpeg.snubot.command.CommandListener;
 import com.oopsjpeg.snubot.data.UserData;
@@ -17,7 +16,11 @@ import discord4j.core.object.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -31,7 +34,7 @@ public class Snubot
     private static Snubot instance;
 
     private Settings settings;
-    private FirestoreManager firestore;
+    private MongoManager mongo;
     private GatewayDiscordClient gateway;
     private CommandListener commandListener;
     private ReactManager reactManager;
@@ -57,15 +60,15 @@ public class Snubot
     private void start() throws IOException, BadSettingsException
     {
         loadSettings();
-        loadFirestore();
+        loadMongo();
 
         // Create client and log in
         DiscordClient client = DiscordClient.create(settings.get(Settings.TOKEN));
         gateway = client.login().block();
         // Set up ready event actions
         gateway.on(ReadyEvent.class).subscribe(e -> {
-            userDataList = firestore.fetchUserDataList();
-            reactManager.setContainerList(firestore.fetchReactContainerList());
+            userDataList = mongo.getUserDataCollection().find().into(new ArrayList<>());
+            reactManager.setContainerList(mongo.getReactContainerCollection().find().into(new ArrayList<>()));
             LOGGER.info("Logged in as " + e.getSelf().getUsername() + ".");
         });
         // Create command listener and add commands
@@ -100,17 +103,14 @@ public class Snubot
             // Validate each setting
             if (settings.get(Settings.TOKEN).isEmpty()) throw new BadSettingsException("Token cannot be empty");
             if (settings.get(Settings.PREFIX).isEmpty()) throw new BadSettingsException("Prefix cannot be empty");
+            if (settings.get(Settings.MONGO_DATABASE).isEmpty()) throw new BadSettingsException("MongoDB database name cannot be empty");
         }
     }
 
-    private void loadFirestore() throws IOException
+    private void loadMongo()
     {
-        Snubot.LOGGER.info("Creating Firestore manager.");
-        try (FileInputStream serviceAccount = new FileInputStream("firebase.json"))
-        {
-            GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
-            firestore = new FirestoreManager(credentials);
-        }
+        Snubot.LOGGER.info("Creating MongoDB manager.");
+        mongo = new MongoManager(settings.get(Settings.MONGO_HOST), settings.get(Settings.MONGO_DATABASE));
     }
 
     public Settings getSettings()
@@ -118,9 +118,9 @@ public class Snubot
         return settings;
     }
 
-    public FirestoreManager getFirestore()
+    public MongoManager getMongo()
     {
-        return firestore;
+        return mongo;
     }
 
     public GatewayDiscordClient getGateway()
