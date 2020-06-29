@@ -5,6 +5,8 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import reactor.core.publisher.Mono;
 
 public class Selections
@@ -13,62 +15,91 @@ public class Selections
     private String channelId;
     private String messageId;
 
-    public Mono<Guild> getGuild()
+    public Selections() {}
+
+    public Selections(@BsonProperty("guild_id") String guildId, @BsonProperty("channel_id") String channelId, @BsonProperty("message_id") String messageId)
     {
-        return Snubot.getInstance().getGateway().getGuildById(Snowflake.of(guildId));
+        this.guildId = guildId;
+        this.channelId = channelId;
+        this.messageId = messageId;
     }
 
+    @BsonProperty("guild_id")
     public String getGuildId()
     {
         return guildId;
     }
 
+    @BsonProperty("guild_id")
     public void setGuildId(String guildId)
     {
         this.guildId = guildId;
         setChannelId(null);
     }
 
-    public Mono<TextChannel> getChannel()
+    @BsonIgnore
+    public Mono<Guild> getGuild()
     {
-        return Snubot.getInstance().getGateway().getChannelById(getChannelId()).cast(TextChannel.class);
+        return Snubot.getInstance().getGateway().getGuildById(Snowflake.of(guildId));
     }
 
-    public String getChannelLink() {
-        return "https://discord.com/channels/" + guildId + "/" + channelId;
-    }
-
-    public Snowflake getChannelId()
+    @BsonIgnore
+    public String getGuildLink()
     {
-        return Snowflake.of(channelId);
+        return "https://discord.com/channels/" + guildId;
     }
 
+    @BsonProperty("channel_id")
+    public String getChannelId()
+    {
+        return channelId;
+    }
+
+    @BsonProperty("channel_id")
     public void setChannelId(String channelId)
     {
         this.channelId = channelId;
         setMessageId(null);
     }
 
-    public Mono<Message> getMessage()
+    @BsonIgnore
+    public Mono<TextChannel> getChannel()
     {
-        return Snubot.getInstance().getGateway().getMessageById(getChannelId(), getMessageId());
+        return Snubot.getInstance().getGateway().getChannelById(Snowflake.of(channelId)).cast(TextChannel.class);
     }
 
-    public boolean hasMessage() {
-        return messageId != null;
-    }
-
-    public String getMessageLink() {
-        return getChannelLink() + "/" + messageId;
-    }
-
-    public Snowflake getMessageId()
+    @BsonIgnore
+    public String getChannelLink()
     {
-        return Snowflake.of(messageId);
+        return getGuildLink() + "/" + channelId;
     }
 
+    @BsonProperty("message_id")
+    public String getMessageId()
+    {
+        return messageId;
+    }
+
+    @BsonProperty("message_id")
     public void setMessageId(String messageId)
     {
         this.messageId = messageId;
+    }
+
+    @BsonIgnore
+    public Mono<Message> getMessage()
+    {
+        return Snubot.getInstance().getGateway().getMessageById(Snowflake.of(channelId), Snowflake.of(messageId));
+    }
+
+    public boolean hasMessage()
+    {
+        return messageId != null;
+    }
+
+    @BsonIgnore
+    public String getMessageLink()
+    {
+        return getChannelLink() + "/" + messageId;
     }
 }

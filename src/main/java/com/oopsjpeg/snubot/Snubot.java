@@ -20,9 +20,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -39,7 +37,7 @@ public class Snubot
     private CommandListener commandListener;
     private ReactManager reactManager;
 
-    private List<UserData> userDataList;
+    private Map<String, UserData> userDataMap;
 
     public static void main(String[] args) throws IOException, BadSettingsException
     {
@@ -67,8 +65,8 @@ public class Snubot
         gateway = client.login().block();
         // Set up ready event actions
         gateway.on(ReadyEvent.class).subscribe(e -> {
-            userDataList = mongo.getUserDataCollection().find().into(new ArrayList<>());
-            reactManager.setContainerList(mongo.getReactContainerCollection().find().into(new ArrayList<>()));
+            userDataMap = mongo.fetchUserDataMap();
+            reactManager.setContainerMap(mongo.fetchReactContainerMap());
             LOGGER.info("Logged in as " + e.getSelf().getUsername() + ".");
         });
         // Create command listener and add commands
@@ -138,24 +136,19 @@ public class Snubot
         return reactManager;
     }
 
-    public List<UserData> getUserDataList()
-    {
-        return userDataList;
-    }
-
     public UserData getUserData(User user)
     {
         if (!hasUserData(user)) addUserData(user);
-        return userDataList.stream().filter(data -> data.getId().equals(user.getId().asString())).findAny().orElse(null);
+        return userDataMap.get(user.getId().asString());
     }
 
     public void addUserData(User user)
     {
-        userDataList.add(new UserData(user.getId().asString()));
+        userDataMap.put(user.getId().asString(), new UserData(user.getId().asString()));
     }
 
     public boolean hasUserData(User user)
     {
-        return userDataList.stream().anyMatch(data -> data.getId().equals(user.getId().asString()));
+        return userDataMap.containsKey(user.getId().asString());
     }
 }

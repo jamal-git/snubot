@@ -1,23 +1,27 @@
 package com.oopsjpeg.snubot.react;
 
-import discord4j.common.util.Snowflake;
+import org.bson.codecs.pojo.annotations.BsonCreator;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ReactContainer
 {
-    private String id;
-    private List<ReactEmote> emoteList = new ArrayList<>();
-
-    public ReactContainer() {}
+    private final String id;
+    private final Map<String, ReactReaction> reactionMap;
 
     public ReactContainer(String id)
     {
+        this(id, new HashMap<>());
+    }
+
+    @BsonCreator
+    public ReactContainer(@BsonProperty("id") String id, @BsonProperty("reaction_map") Map<String, ReactReaction> reactionMap) {
         this.id = id;
+        this.reactionMap = reactionMap;
     }
 
     @BsonId
@@ -26,61 +30,37 @@ public class ReactContainer
         return id;
     }
 
-    @BsonId
-    public void setId(String id)
+    @BsonProperty("reaction_map")
+    public Map<String, ReactReaction> getReactionMap()
     {
-        this.id = id;
+        return reactionMap;
     }
 
     @BsonIgnore
-    public Snowflake getSnowflake()
-    {
-        return Snowflake.of(id);
-    }
-
-    @BsonProperty("emote_list")
-    public List<ReactEmote> getEmoteList()
-    {
-        return emoteList;
-    }
-
-    @BsonProperty("emote_list")
-    public void setEmoteList(List<ReactEmote> emoteList)
-    {
-        this.emoteList = emoteList;
+    public int getReactionCount() {
+        return reactionMap.size();
     }
 
     @BsonIgnore
     public long getRoleCount() {
-        return emoteList.stream().map(ReactEmote::getRoleList).distinct().count();
+        return reactionMap.values().stream().map(ReactReaction::getRoleMap).distinct().count();
     }
 
     @BsonIgnore
-    public ReactEmote getReaction(String emoji)
+    public ReactReaction getReaction(String emoji)
     {
-        return emoteList.stream().filter(emote -> emote.getEmoji().equals(emoji)).findAny().orElse(null);
+        return reactionMap.getOrDefault(emoji, null);
     }
 
     @BsonIgnore
-    public ReactEmote getOrAddReaction(String emoji) {
-        if (!hasReaction(emoji))
+    public void addReaction(String emoji) {
+        reactionMap.put(emoji, new ReactReaction(emoji));
+    }
+
+    @BsonIgnore
+    public ReactReaction getOrAddReaction(String emoji) {
+        if (!reactionMap.containsKey(emoji))
             addReaction(emoji);
         return getReaction(emoji);
-    }
-
-    public void addReaction(String emoji) {
-        if (hasReaction(emoji))
-            removeReaction(emoji);
-        emoteList.add(new ReactEmote(emoji));
-    }
-
-    public void removeReaction(String emoji)
-    {
-        emoteList.removeIf(emote -> emote.getEmoji().equals(emoji));
-    }
-
-    public boolean hasReaction(String emoji)
-    {
-        return emoteList.stream().anyMatch(emote -> emote.getEmoji().equals(emoji));
     }
 }

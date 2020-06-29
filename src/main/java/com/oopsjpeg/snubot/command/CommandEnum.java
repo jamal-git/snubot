@@ -153,7 +153,7 @@ public enum CommandEnum implements Command
                         String content = "Editing [message](" + data.getSelections().getMessageLink() + ") by " + Util.formatUser(selectedMessage.getAuthor().get()) + ".";
                         if (manager.hasContainer(selectedMessage)) {
                             ReactContainer container = manager.getContainer(selectedMessage);
-                            content += "\n" + container.getEmoteList().size() + " emoji(s) linked to " + container.getRoleCount() + " role(s).";
+                            content += "\n" + container.getReactionCount() + " emoji(s) linked to " + container.getRoleCount() + " role(s).";
                         }
                         content += "\n\nAdd a role: `" + parent.format(this) + " add <role> <emoji> [mode]`";
                         content += "\nRemove a role: `" + parent.format(this) + " remove <role>`";

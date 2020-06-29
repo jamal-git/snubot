@@ -1,59 +1,30 @@
 package com.oopsjpeg.snubot.react;
 
-import discord4j.common.util.Snowflake;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-
-import java.util.Objects;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class ReactRole
 {
-    private String id;
-    private Type type;
+    private final String id;
+    private final Type type;
 
-    public ReactRole() {}
-
-    public ReactRole(String id, Type type)
+    @BsonCreator
+    public ReactRole(@BsonProperty("id") String id, @BsonProperty("type") Type type)
     {
         this.id = id;
         this.type = type;
     }
 
-    public String getId()
-    {
+    @BsonId
+    public String getId() {
         return id;
     }
 
-    public void setId(String id)
-    {
-        this.id = id;
-    }
-
+    @BsonProperty("type")
     public Type getType()
     {
         return type;
-    }
-
-    public void setType(Type type)
-    {
-        this.type = type;
-    }
-
-    @BsonIgnore
-    public Snowflake getSnowflake()
-    {
-        return Snowflake.of(id);
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        return o instanceof ReactRole && ((ReactRole) o).id.equals(id);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(id);
     }
 
     public enum Type

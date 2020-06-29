@@ -1,19 +1,23 @@
 package com.oopsjpeg.snubot.data;
 
-import discord4j.common.util.Snowflake;
+import org.bson.codecs.pojo.annotations.BsonCreator;
 import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class UserData
 {
-    private String id;
-    private Selections selections = new Selections();
-
-    public UserData() {}
+    private final String id;
+    private final Selections selections;
 
     public UserData(String id)
     {
+        this(id, new Selections());
+    }
+
+    @BsonCreator
+    public UserData(@BsonProperty("id") String id, @BsonProperty("selections") Selections selections) {
         this.id = id;
+        this.selections = selections;
     }
 
     @BsonId
@@ -22,21 +26,9 @@ public class UserData
         return id;
     }
 
-    @BsonIgnore
-    public Snowflake getSnowflake()
-    {
-        return Snowflake.of(id);
-    }
-
-    @BsonIgnore
+    @BsonProperty("selections")
     public Selections getSelections()
     {
         return selections;
-    }
-
-    @BsonIgnore
-    public void setSelections(Selections selections)
-    {
-        this.selections = selections;
     }
 }

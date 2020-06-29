@@ -12,6 +12,10 @@ import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
@@ -39,6 +43,16 @@ public class MongoManager
     public MongoCollection<ReactContainer> getReactContainerCollection()
     {
         return database.getCollection("react_containers", ReactContainer.class);
+    }
+
+    public Map<String, UserData> fetchUserDataMap() {
+        Snubot.LOGGER.info("Fetching user data map.");
+        return getUserDataCollection().find().into(new ArrayList<>()).stream().collect(Collectors.toMap(UserData::getId, data -> data));
+    }
+
+    public Map<String, ReactContainer> fetchReactContainerMap() {
+        Snubot.LOGGER.info("Fetching react container map.");
+        return getReactContainerCollection().find().into(new ArrayList<>()).stream().collect(Collectors.toMap(ReactContainer::getId, data -> data));
     }
 
     public void saveUserData(UserData data)
