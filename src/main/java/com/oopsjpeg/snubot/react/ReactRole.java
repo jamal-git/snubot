@@ -10,14 +10,15 @@ public class ReactRole
     private final Type type;
 
     @BsonCreator
-    public ReactRole(@BsonProperty("id") String id, @BsonProperty("type") Type type)
+    public ReactRole(@BsonProperty("id") final String id, final @BsonProperty("type") Type type)
     {
         this.id = id;
         this.type = type;
     }
 
     @BsonId
-    public String getId() {
+    public String getId()
+    {
         return id;
     }
 

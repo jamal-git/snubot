@@ -30,6 +30,11 @@ public interface Command
         return false;
     }
 
+    default boolean isDeveloperOnly()
+    {
+        return false;
+    }
+
     default Snubot getBot()
     {
         return Snubot.getInstance();

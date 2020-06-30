@@ -9,7 +9,8 @@ public class PagedList<T> extends LinkedList<T>
 {
     private int resultsPerPage;
 
-    public PagedList(Collection<? extends T> collection, int resultsPerPage) {
+    public PagedList(Collection<? extends T> collection, int resultsPerPage)
+    {
         super(collection);
         this.resultsPerPage = resultsPerPage;
     }
@@ -26,7 +27,8 @@ public class PagedList<T> extends LinkedList<T>
         return page(page).stream().map(toString).collect(Collectors.joining("\n"));
     }
 
-    public int pages() {
+    public int pages()
+    {
         return (int) Math.ceil((double) size() / resultsPerPage);
     }
 

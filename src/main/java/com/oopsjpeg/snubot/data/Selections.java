@@ -17,7 +17,7 @@ public class Selections
 
     public Selections() {}
 
-    public Selections(@BsonProperty("guild_id") String guildId, @BsonProperty("channel_id") String channelId, @BsonProperty("message_id") String messageId)
+    public Selections(@BsonProperty("guild_id") final String guildId, @BsonProperty("channel_id") final String channelId, @BsonProperty("message_id") final String messageId)
     {
         this.guildId = guildId;
         this.channelId = channelId;

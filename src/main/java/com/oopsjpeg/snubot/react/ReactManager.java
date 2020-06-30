@@ -79,17 +79,20 @@ public class ReactManager
         return getContainerMap().get(message.getId().asString());
     }
 
-    public ReactContainer getOrAddContainer(Message message) {
+    public ReactContainer getOrAddContainer(Message message)
+    {
         if (!hasContainer(message))
             addContainer(message);
         return getContainer(message);
     }
 
-    public ReactContainer addContainer(Message message) {
+    public ReactContainer addContainer(Message message)
+    {
         return containerMap.put(message.getId().asString(), new ReactContainer(message.getId().asString()));
     }
 
-    public ReactContainer removeContainer(Message message) {
+    public ReactContainer removeContainer(Message message)
+    {
         return containerMap.remove(message.getId().asString());
     }
 
@@ -98,7 +101,8 @@ public class ReactManager
         return containerMap.containsKey(message.getId().asString());
     }
 
-    public void updateContainer(Message message) {
+    public void updateContainer(Message message)
+    {
         if (hasContainer(message))
         {
             ReactContainer container = getContainer(message);

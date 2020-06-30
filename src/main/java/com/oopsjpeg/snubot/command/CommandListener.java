@@ -7,7 +7,6 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.rest.util.PermissionSet;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -44,23 +43,25 @@ public class CommandListener
             {
                 try
                 {
-                    // Check permissions if necessary
-                    if (!command.getPermissions().isEmpty() && channel instanceof TextChannel)
-                    {
-                        TextChannel textChannel = (TextChannel) channel;
-                        PermissionSet permissions = textChannel.getEffectivePermissions(author.getId()).block();
-                        if (!permissions.containsAll(command.getPermissions()))
-                            throw new CommandException("You do not have permission to use this command.");
-                    }
+                    // TODO Turn the following code into exceptions
+
+                    // Check if command is developer only
+                    if (command.isDeveloperOnly() && !author.getId().equals(client.getApplicationInfo().block().getOwnerId()))
+                        throw new CommandException("This command can only be used by the developer.");
                     // Check if command is guild only
                     if (command.isGuildOnly() && !(channel instanceof TextChannel))
                         throw new CommandException("This command can only be used in servers.");
+                    // Check permissions if necessary
+                    if (!command.getPermissions().isEmpty() && channel instanceof TextChannel && !Util.hasPermissions((TextChannel) channel, author.getId(), command.getPermissions()))
+                        throw new CommandException("You do not have permission to use this command.");
 
                     command.execute(this, message, alias, args);
-                } catch (CommandException error)
+                }
+                catch (CommandException error)
                 {
                     Util.send(channel, author, ":x: " + error.getMessage());
-                } catch (Exception error)
+                }
+                catch (Exception error)
                 {
                     Util.send(channel, author, ":x: Unhandled error: `" + error.getMessage() + "`\nContact the developer about this error.");
                     error.printStackTrace();
@@ -77,7 +78,8 @@ public class CommandListener
                 .findAny().orElse(null);
     }
 
-    public String format(Command command) {
+    public String format(Command command)
+    {
         return prefix + command.getAliases()[0];
     }
 

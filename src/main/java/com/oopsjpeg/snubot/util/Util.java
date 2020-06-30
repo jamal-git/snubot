@@ -4,8 +4,10 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.rest.util.PermissionSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,11 +71,13 @@ public class Util
         return args.toArray(new String[0]);
     }
 
-    public static boolean isDigits(String s) {
+    public static boolean isDigits(String s)
+    {
         return s.matches("-?\\d+(\\.\\d+)?");
     }
 
-    public static String formatUser(User u) {
+    public static String formatUser(User u)
+    {
         return u.getUsername() + "#" + u.getDiscriminator();
     }
 
@@ -85,5 +89,10 @@ public class Util
     public static Message send(MessageChannel channel, User user, String content)
     {
         return channel.createEmbed(embed(user).andThen(e -> e.setDescription(content))).block();
+    }
+
+    public static boolean hasPermissions(TextChannel channel, Snowflake userId, PermissionSet permissionSet)
+    {
+        return channel.getEffectivePermissions(userId).block().containsAll(permissionSet);
     }
 }

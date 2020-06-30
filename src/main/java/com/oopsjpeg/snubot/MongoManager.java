@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
+import com.oopsjpeg.snubot.data.GuildData;
 import com.oopsjpeg.snubot.data.UserData;
 import com.oopsjpeg.snubot.react.ReactContainer;
 import org.bson.codecs.configuration.CodecProvider;
@@ -40,17 +41,30 @@ public class MongoManager
         return database.getCollection("users", UserData.class);
     }
 
+    public MongoCollection<GuildData> getGuildDataCollection()
+    {
+        return database.getCollection("guilds", GuildData.class);
+    }
+
     public MongoCollection<ReactContainer> getReactContainerCollection()
     {
         return database.getCollection("react_containers", ReactContainer.class);
     }
 
-    public Map<String, UserData> fetchUserDataMap() {
+    public Map<String, UserData> fetchUserDataMap()
+    {
         Snubot.LOGGER.info("Fetching user data map.");
         return getUserDataCollection().find().into(new ArrayList<>()).stream().collect(Collectors.toMap(UserData::getId, data -> data));
     }
 
-    public Map<String, ReactContainer> fetchReactContainerMap() {
+    public Map<String, GuildData> fetchGuildDataMap()
+    {
+        Snubot.LOGGER.info("Fetching guild data map.");
+        return getGuildDataCollection().find().into(new ArrayList<>()).stream().collect(Collectors.toMap(GuildData::getId, data -> data));
+    }
+
+    public Map<String, ReactContainer> fetchReactContainerMap()
+    {
         Snubot.LOGGER.info("Fetching react container map.");
         return getReactContainerCollection().find().into(new ArrayList<>()).stream().collect(Collectors.toMap(ReactContainer::getId, data -> data));
     }
@@ -61,7 +75,14 @@ public class MongoManager
         getUserDataCollection().replaceOne(Filters.eq("_id", data.getId()), data, new ReplaceOptions().upsert(true));
     }
 
-    public void saveReactContainer(ReactContainer container) {
+    public void saveGuildData(GuildData data)
+    {
+        Snubot.LOGGER.info("Saving guild data of ID " + data.getId() + ".");
+        getGuildDataCollection().replaceOne(Filters.eq("_id", data.getId()), data, new ReplaceOptions().upsert(true));
+    }
+
+    public void saveReactContainer(ReactContainer container)
+    {
         Snubot.LOGGER.info("Saving react container of ID " + container.getId() + ".");
         getReactContainerCollection().replaceOne(Filters.eq("_id", container.getId()), container, new ReplaceOptions().upsert(true));
     }

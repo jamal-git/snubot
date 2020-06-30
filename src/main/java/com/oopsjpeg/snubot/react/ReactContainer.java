@@ -13,13 +13,14 @@ public class ReactContainer
     private final String id;
     private final Map<String, ReactReaction> reactionMap;
 
-    public ReactContainer(String id)
+    public ReactContainer(final String id)
     {
         this(id, new HashMap<>());
     }
 
     @BsonCreator
-    public ReactContainer(@BsonProperty("id") String id, @BsonProperty("reaction_map") Map<String, ReactReaction> reactionMap) {
+    public ReactContainer(@BsonProperty("id") final String id, @BsonProperty("reaction_map") final Map<String, ReactReaction> reactionMap)
+    {
         this.id = id;
         this.reactionMap = reactionMap;
     }
@@ -37,12 +38,14 @@ public class ReactContainer
     }
 
     @BsonIgnore
-    public int getReactionCount() {
+    public int getReactionCount()
+    {
         return reactionMap.size();
     }
 
     @BsonIgnore
-    public long getRoleCount() {
+    public long getRoleCount()
+    {
         return reactionMap.values().stream().map(ReactReaction::getRoleMap).distinct().count();
     }
 
@@ -53,12 +56,14 @@ public class ReactContainer
     }
 
     @BsonIgnore
-    public void addReaction(String emoji) {
+    public void addReaction(String emoji)
+    {
         reactionMap.put(emoji, new ReactReaction(emoji));
     }
 
     @BsonIgnore
-    public ReactReaction getOrAddReaction(String emoji) {
+    public ReactReaction getOrAddReaction(String emoji)
+    {
         if (!reactionMap.containsKey(emoji))
             addReaction(emoji);
         return getReaction(emoji);

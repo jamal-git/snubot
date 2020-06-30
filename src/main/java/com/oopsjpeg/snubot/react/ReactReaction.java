@@ -13,13 +13,14 @@ public class ReactReaction
     private final String emoji;
     private final Map<String, ReactRole> roleMap;
 
-    public ReactReaction(String emoji)
+    public ReactReaction(final String emoji)
     {
         this(emoji, new HashMap<>());
     }
 
     @BsonCreator
-    public ReactReaction(@BsonProperty("emoji") String emoji, @BsonProperty("role_map") Map<String, ReactRole> roleMap) {
+    public ReactReaction(@BsonProperty("emoji") final String emoji, @BsonProperty("role_map") final Map<String, ReactRole> roleMap)
+    {
         this.emoji = emoji;
         this.roleMap = roleMap;
     }

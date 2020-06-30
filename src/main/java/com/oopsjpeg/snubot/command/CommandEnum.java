@@ -1,5 +1,7 @@
 package com.oopsjpeg.snubot.command;
 
+import com.oopsjpeg.snubot.data.GuildData;
+import com.oopsjpeg.snubot.data.MemberData;
 import com.oopsjpeg.snubot.data.UserData;
 import com.oopsjpeg.snubot.react.ReactContainer;
 import com.oopsjpeg.snubot.react.ReactManager;
@@ -92,12 +94,12 @@ public enum CommandEnum implements Command
                         throw new CommandException("Correct usage: `" + parent.format(this) + " <#channel> <message id>`");
 
                     User author = message.getAuthor().get();
-                    UserData data = getBot().getUserData(author);
+                    UserData data = getBot().getOrAddUserData(author.getId().asString());
                     MessageChannel channel = message.getChannel().block();
                     Guild guild = message.getGuild().block();
 
                     TextChannel targetChannel = guild.getChannels().ofType(TextChannel.class)
-                            .filter(c ->  args[0].equals(c.getMention()))
+                            .filter(c -> args[0].equals(c.getMention()))
                             .blockFirst();
                     if (targetChannel == null)
                         throw new CommandException("Invalid channel specified.");
@@ -140,7 +142,7 @@ public enum CommandEnum implements Command
                 {
                     MessageChannel channel = message.getChannel().block();
                     User author = message.getAuthor().get();
-                    UserData data = getBot().getUserData(author);
+                    UserData data = getBot().getOrAddUserData(author.getId().asString());
                     ReactManager manager = getBot().getReactManager();
 
                     if (!data.getSelections().hasMessage())
@@ -151,7 +153,8 @@ public enum CommandEnum implements Command
                     if (args.length == 0)
                     {
                         String content = "Editing [message](" + data.getSelections().getMessageLink() + ") by " + Util.formatUser(selectedMessage.getAuthor().get()) + ".";
-                        if (manager.hasContainer(selectedMessage)) {
+                        if (manager.hasContainer(selectedMessage))
+                        {
                             ReactContainer container = manager.getContainer(selectedMessage);
                             content += "\n" + container.getReactionCount() + " emoji(s) linked to " + container.getRoleCount() + " role(s).";
                         }
@@ -188,8 +191,6 @@ public enum CommandEnum implements Command
 
                             manager.addRoleToEmoji(selectedMessage, emoji, role, type);
 
-                            getBot().getMongo().saveReactContainer(manager.getOrAddContainer(selectedMessage));
-
                             Util.send(channel, author, "Added **" + role.getName() + "** (" + type.getName() + ") to " + Util.emojiToString(emoji) + " on [message](" + data.getSelections().getMessageLink() + ").");
                         }
                         else if (args[0].equalsIgnoreCase("remove"))
@@ -204,8 +205,6 @@ public enum CommandEnum implements Command
                                 throw new CommandException("Invalid role specified.");
 
                             manager.removeRoleFromAll(selectedMessage, role);
-
-                            getBot().getMongo().saveReactContainer(manager.getContainer(selectedMessage));
 
                             Util.send(channel, author, "Removed **" + role.getName() + "** from all reactions on [message](" + data.getSelections().getMessageLink() + ").");
                         }
@@ -241,6 +240,85 @@ public enum CommandEnum implements Command
 
                 @Override
                 public boolean isGuildOnly()
+                {
+                    return true;
+                }
+            },
+    LEVEL("level")
+            {
+                @Override
+                public void execute(CommandListener parent, Message message, String alias, String[] args) throws CommandException
+                {
+                    User author = message.getAuthor().get();
+                    TextChannel channel = message.getChannel().cast(TextChannel.class).block();
+                    Guild guild = message.getGuild().block();
+
+                    if (args.length == 0)
+                    {
+                        GuildData guildData = getBot().getGuildData(guild.getId().asString());
+
+                        if (guildData == null || !guildData.isLevelingEnabled())
+                            throw new CommandException("User leveling is not enabled in this server.");
+
+                        MemberData memberData = guildData.getOrAddMemberData(author.getId().asString());
+
+                        Util.send(channel, author, "Level **" + (memberData.getLevel() + 1) + "** (" + memberData.getXp() + " / " + memberData.xpRequired() + ")");
+                    }
+                    else if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable"))
+                    {
+                        if (!Util.hasPermissions(channel, author.getId(), PermissionSet.of(Permission.MANAGE_GUILD)))
+                            throw new CommandException("You do not have permission to use this command.");
+
+                        GuildData guildData = getBot().getOrAddGuildData(guild.getId().asString());
+
+                        if (args[0].equalsIgnoreCase("enable"))
+                        {
+                            if (guildData.isLevelingEnabled())
+                                throw new CommandException("User leveling is already enabled in **" + guild.getName() + "**.");
+                            guildData.setLevelingEnabled(true);
+                            Util.send(channel, author, "Enabled user leveling in **" + guild.getName() + "**.");
+                        }
+                        else if (args[0].equalsIgnoreCase("disable"))
+                        {
+                            if (!guildData.isLevelingEnabled())
+                                throw new CommandException("User leveling is already disabled in **" + guild.getName() + "**.");
+                            guildData.setLevelingEnabled(false);
+                            Util.send(channel, author, "Disabled user leveling in **" + guild.getName() + "**.");
+                        }
+                    }
+                }
+
+                @Override
+                public String getDescription()
+                {
+                    return "Show your level progress in the current server.";
+                }
+
+                @Override
+                public boolean isGuildOnly()
+                {
+                    return true;
+                }
+            },
+    SAVE_ALL("saveall")
+            {
+                @Override
+                public void execute(CommandListener parent, Message message, String alias, String[] args)
+                {
+                    User author = message.getAuthor().get();
+                    MessageChannel channel = message.getChannel().block();
+                    getBot().saveAll();
+                    Util.send(channel, author, "Saved all data.");
+                }
+
+                @Override
+                public String getDescription()
+                {
+                    return "Save all data.";
+                }
+
+                @Override
+                public boolean isDeveloperOnly()
                 {
                     return true;
                 }
