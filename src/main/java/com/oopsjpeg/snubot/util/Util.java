@@ -1,48 +1,44 @@
 package com.oopsjpeg.snubot.util;
 
 import discord4j.common.util.Snowflake;
-import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
-import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.PermissionSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class Util
 {
+    private static final String CUSTOM_EMOJI_FORMAT = "<:%s:%s>";
+
     public static String emojiToString(ReactionEmoji emoji)
     {
         return emoji.asCustomEmoji()
-                .map(e -> "<:" + e.getName() + ":" + e.getId().asString() + ">")
-                .orElse(emoji.asUnicodeEmoji()
-                        .map(ReactionEmoji.Unicode::getRaw)
-                        .orElse(null));
+                // Custom emoji
+                .map(e -> String.format(CUSTOM_EMOJI_FORMAT, e.getName(), e.getId().asString()))
+                // Unicode emoji
+                .orElse(emoji.asUnicodeEmoji().map(ReactionEmoji.Unicode::getRaw).orElse(null));
     }
 
     public static ReactionEmoji stringToEmoji(String string)
     {
+        // Custom Emoji
         if (string.matches("<a?:.*:\\d+>"))
         {
             String[] split = string.replaceAll("([<>])", "").split(":");
             return ReactionEmoji.custom(Snowflake.of(split[2]), split[1], split[0].equals("a"));
         }
-        else
-        {
-            return ReactionEmoji.unicode(string);
-        }
+        // Unicode emoji
+        else return ReactionEmoji.unicode(string);
     }
 
     public static boolean searchString(String s1, String s2)
     {
         s1 = s1.toLowerCase();
         s2 = s2.toLowerCase();
-        return s1.equals(s2) || s1.contains(s2) || s2.contains(s1);
+        return s1.contains(s2) || s2.contains(s1);
     }
 
     public static String[] buildArguments(String s)
@@ -74,21 +70,6 @@ public class Util
     public static boolean isDigits(String s)
     {
         return s.matches("-?\\d+(\\.\\d+)?");
-    }
-
-    public static String formatUser(User u)
-    {
-        return u.getUsername() + "#" + u.getDiscriminator();
-    }
-
-    public static Consumer<EmbedCreateSpec> embed(User user)
-    {
-        return e -> e.setAuthor(user.getUsername() + "#" + user.getDiscriminator(), null, user.getAvatarUrl());
-    }
-
-    public static Message send(MessageChannel channel, User user, String content)
-    {
-        return channel.createEmbed(embed(user).andThen(e -> e.setDescription(content))).block();
     }
 
     public static boolean hasPermissions(TextChannel channel, Snowflake userId, PermissionSet permissionSet)

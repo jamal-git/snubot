@@ -34,14 +34,15 @@ public class Settings
         properties.store(fw, "Snubot Properties");
     }
 
-    public String get(String key)
-    {
-        return get(key, DEFAULTS.getProperty(key, ""));
-    }
 
     public String get(String key, String defaultValue)
     {
         return properties.getProperty(key, defaultValue);
+    }
+
+    public String get(String key)
+    {
+        return get(key, DEFAULTS.getProperty(key, ""));
     }
 
     public void put(String key, String value)

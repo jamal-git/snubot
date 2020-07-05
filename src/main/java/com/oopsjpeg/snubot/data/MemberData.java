@@ -1,66 +1,94 @@
 package com.oopsjpeg.snubot.data;
 
-import org.bson.codecs.pojo.annotations.BsonCreator;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-import org.bson.codecs.pojo.annotations.BsonProperty;
+import discord4j.common.util.Snowflake;
 
 import java.util.Random;
 
-public class MemberData
+public class MemberData extends DataExtension<GuildData>
 {
     private static final Random RANDOM = new Random();
 
     private final String id;
 
+    private transient GuildData parent;
+
     private int xp;
     private int level;
 
-    private long lastMessageMillis;
+    private transient long lastMessageMillis;
 
     public MemberData(final String id)
     {
         this.id = id;
     }
 
-    @BsonCreator
-    public MemberData(@BsonProperty("id") final String id, @BsonProperty("xp") final int xp, @BsonProperty("level") final int level)
+    public Snowflake getId()
     {
-        this.id = id;
-        this.xp = xp;
-        this.level = level;
+        return Snowflake.of(id);
     }
 
-    public static int xpRequired(int level)
-    {
-        return (int) (220 + Math.pow(level * 90, 1.06));
-    }
-
-    @BsonId
-    public String getId()
+    public String getRawId()
     {
         return id;
     }
 
-    @BsonProperty("xp")
+    public static int maxXp(int level)
+    {
+        return (int) (220 + Math.pow(level * 90, 1.06));
+    }
+
     public int getXp()
     {
         return xp;
     }
 
-    @BsonProperty("xp")
-    public boolean setXp(int xp)
+    public void setXp(int xp)
     {
         this.xp = xp;
+    }
 
-        int newLevel = level;
-        while (newLevel < 50 && this.xp >= xpRequired())
+    public void addXp(int xp)
+    {
+        setXp(getXp() + xp);
+    }
+
+    public boolean messageXp()
+    {
+        if (System.currentTimeMillis() - lastMessageMillis > 60000)
         {
-            this.xp -= xpRequired();
+            lastMessageMillis = System.currentTimeMillis();
+            addXp(24 + RANDOM.nextInt(10));
+            return levelUp();
+        }
+        return false;
+    }
+
+    public int getMaxXp()
+    {
+        return maxXp(level);
+    }
+
+    public int getLevel()
+    {
+        return level;
+    }
+
+    public void setLevel(int level)
+    {
+        this.level = level;
+    }
+
+    public boolean levelUp()
+    {
+        int newLevel = level;
+        while (newLevel < 50 && this.xp >= maxXp(newLevel))
+        {
+            this.xp -= maxXp(newLevel);
             newLevel++;
         }
 
-        if (level != newLevel) {
+        if (level != newLevel)
+        {
             level = newLevel;
             return true;
         }
@@ -68,51 +96,16 @@ public class MemberData
         return false;
     }
 
-    @BsonIgnore
-    public boolean addXp(int xp)
+    @Override
+    public MemberData parent(GuildData parent)
     {
-        return setXp(getXp() + xp);
+        this.parent = parent;
+        return this;
     }
 
-    @BsonIgnore
-    public boolean messageXp()
+    @Override
+    public GuildData getParent()
     {
-        if (System.currentTimeMillis() - lastMessageMillis > 60000)
-        {
-            lastMessageMillis = System.currentTimeMillis();
-            return addXp(16 + RANDOM.nextInt(10));
-        }
-        return false;
-    }
-
-    @BsonIgnore
-    public int xpRequired()
-    {
-        return xpRequired(level);
-    }
-
-    @BsonProperty("level")
-    public int getLevel()
-    {
-        return level;
-    }
-
-    @BsonProperty("level")
-    public void setLevel(int level)
-    {
-        this.level = level;
-        xp = 0;
-    }
-
-    @BsonIgnore
-    public long getLastMessageMillis()
-    {
-        return lastMessageMillis;
-    }
-
-    @BsonIgnore
-    public void setLastMessageMillis(long lastMessageMillis)
-    {
-        this.lastMessageMillis = lastMessageMillis;
+        return parent;
     }
 }

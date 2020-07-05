@@ -1,4 +1,4 @@
-package com.oopsjpeg.snubot.command;
+package com.oopsjpeg.snubot.command.exception;
 
 public class CommandException extends Exception
 {

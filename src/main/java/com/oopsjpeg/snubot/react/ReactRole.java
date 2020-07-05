@@ -1,28 +1,23 @@
 package com.oopsjpeg.snubot.react;
 
-import org.bson.codecs.pojo.annotations.BsonCreator;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonProperty;
+import discord4j.common.util.Snowflake;
 
 public class ReactRole
 {
     private final String id;
     private final Type type;
 
-    @BsonCreator
-    public ReactRole(@BsonProperty("id") final String id, final @BsonProperty("type") Type type)
+    public ReactRole(final String id, final Type type)
     {
         this.id = id;
         this.type = type;
     }
 
-    @BsonId
-    public String getId()
+    public Snowflake getId()
     {
-        return id;
+        return Snowflake.of(id);
     }
 
-    @BsonProperty("type")
     public Type getType()
     {
         return type;

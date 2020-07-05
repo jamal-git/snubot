@@ -1,96 +1,92 @@
 package com.oopsjpeg.snubot.data;
 
+import com.oopsjpeg.snubot.Snubot;
 import discord4j.common.util.Snowflake;
-import discord4j.core.object.entity.Member;
-import org.bson.codecs.pojo.annotations.BsonCreator;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
-import org.bson.codecs.pojo.annotations.BsonProperty;
+import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Role;
+import discord4j.core.object.entity.User;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class GuildData
+public class GuildData extends DataObject
 {
-    private final String id;
-    private final Map<String, MemberData> memberDataMap;
-    private final Map<Integer, String> leveledRolesMap;
+    private Map<String, MemberData> memberDataMap = new HashMap<>();
 
-    private boolean levelingEnabled;
+    private final Leveling leveling = new Leveling();
+
+    private String modRoleId;
 
     public GuildData(final String id)
     {
-        this(id, new HashMap<>(), new HashMap<>());
+        super(id);
     }
 
-    @BsonCreator
-    public GuildData(@BsonProperty("id") final String id,
-                     @BsonProperty("member_data_map") final Map<String, MemberData> memberDataMap,
-                     @BsonProperty("leveled_roles_map") final Map<Integer, String> leveledRolesMap)
+    public Mono<Guild> getGuild()
     {
-        this.id = id;
-        this.memberDataMap = memberDataMap;
-        this.leveledRolesMap = leveledRolesMap;
+        return Snubot.getInstance().getGateway().getGuildById(getId());
     }
 
-    @BsonId
-    public String getId()
-    {
-        return id;
-    }
-
-    @BsonProperty("member_data_map")
     public Map<String, MemberData> getMemberDataMap()
     {
         return memberDataMap;
     }
 
-    @BsonIgnore
     public MemberData getMemberData(String id)
     {
-        return memberDataMap.getOrDefault(id, null);
+        return memberDataMap.getOrDefault(id, null).parent(this);
     }
 
-    @BsonIgnore
+    public MemberData getMemberData(User user)
+    {
+        return getMemberData(user.getId().asString());
+    }
+
     public void addMemberData(String id)
     {
-        memberDataMap.put(id, new MemberData(id));
+        getMemberDataMap().put(id, new MemberData(id));
     }
 
     public MemberData getOrAddMemberData(String id)
     {
-        if (!memberDataMap.containsKey(id))
+        if (!getMemberDataMap().containsKey(id))
             addMemberData(id);
         return getMemberData(id);
     }
 
-    public Map<Integer, String> getLeveledRolesMap()
+    public MemberData getOrAddMemberData(User user)
     {
-        return leveledRolesMap;
+        return getOrAddMemberData(user.getId().asString());
     }
 
-    public void updateLeveledRoles(Member member) {
-        if (memberDataMap.containsKey(member.getId().asString())) {
-            MemberData memberData = memberDataMap.get(member.getId().asString());
-            for (int i = 0; i < 50; i++) if (leveledRolesMap.containsKey(i)) {
-                Snowflake roleId = Snowflake.of(leveledRolesMap.get(i));
-                if (memberData.getLevel() >= i && !member.getRoleIds().contains(roleId))
-                    member.addRole(roleId).block();
-                if (memberData.getLevel() < i && member.getRoleIds().contains(roleId))
-                    member.removeRole(roleId).block();
-            }
-        }
+    public boolean hasMemberData(User user)
+    {
+        return memberDataMap.containsKey(user.getId().asString());
     }
 
-    @BsonProperty("leveling_enabled")
-    public boolean isLevelingEnabled()
+    public Leveling getLeveling()
     {
-        return levelingEnabled;
+        return (Leveling) leveling.parent(this);
     }
 
-    @BsonProperty("leveling_enabled")
-    public void setLevelingEnabled(boolean levelingEnabled)
+    public Mono<Role> getModRole()
     {
-        this.levelingEnabled = levelingEnabled;
+        return Snubot.getInstance().getGateway().getRoleById(getId(), getModRoleId());
+    }
+
+    public void setModRole(Role role)
+    {
+        modRoleId = role.getId().asString();
+    }
+
+    public Snowflake getModRoleId()
+    {
+        return Snowflake.of(modRoleId);
+    }
+
+    public boolean hasModRole()
+    {
+        return modRoleId != null;
     }
 }

@@ -1,12 +1,13 @@
 package com.oopsjpeg.snubot.command;
 
 import com.oopsjpeg.snubot.Snubot;
+import com.oopsjpeg.snubot.command.exception.CommandException;
 import discord4j.core.object.entity.Message;
 import discord4j.rest.util.PermissionSet;
 
 public interface Command
 {
-    void execute(CommandListener parent, Message message, String alias, String[] args) throws CommandException;
+    void execute(Message message, String alias, String[] args, CommandRegistry registry, Snubot bot) throws CommandException;
 
     String[] getAliases();
 
@@ -22,12 +23,12 @@ public interface Command
 
     default PermissionSet getPermissions()
     {
-        return PermissionSet.none();
+        return null;
     }
 
-    default boolean isGuildOnly()
+    default boolean hasPermissions()
     {
-        return false;
+        return getPermissions() != null;
     }
 
     default boolean isDeveloperOnly()
@@ -35,8 +36,13 @@ public interface Command
         return false;
     }
 
-    default Snubot getBot()
+    default boolean isGuildOnly()
     {
-        return Snubot.getInstance();
+        return isModOnly();
+    }
+
+    default boolean isModOnly()
+    {
+        return false;
     }
 }

@@ -1,7 +1,9 @@
 package com.oopsjpeg.snubot.react;
 
-import com.oopsjpeg.snubot.util.Util;
+import com.oopsjpeg.snubot.Snubot;
+import com.oopsjpeg.snubot.manager.Manager;
 import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Member;
@@ -9,34 +11,39 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.reaction.ReactionEmoji;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import static com.oopsjpeg.snubot.react.ReactRole.Type.ONCE;
 
-public class ReactManager
+public class ReactManager implements Manager
 {
-    private Map<String, ReactContainer> containerMap = new HashMap<>();
+    private final Snubot parent;
+    private final Map<String, ReactMessage> messageMap = new HashMap<>();
+
+    public ReactManager(Snubot parent)
+    {
+        this.parent = parent;
+    }
 
     public void onReactAdd(ReactionAddEvent event)
     {
         Message message = event.getMessage().block();
         User user = event.getUser().block();
-        // Check if the message has a container
-        if (!user.isBot() && hasContainer(message))
+        // Check if the message has data
+        if (!user.isBot() && has(message))
         {
-            ReactContainer container = getContainer(message);
+            ReactMessage reactMessage = get(message);
             ReactionEmoji emoji = event.getEmoji();
-            String emojiStr = Util.emojiToString(emoji);
-            // Check if the container has this emoji
-            if (container.getReactionMap().containsKey(emojiStr))
+            // Check if the message has this emoji
+            if (reactMessage.hasEmoji(emoji))
             {
-                // Give the reaction's roles to the user
-                ReactReaction emote = container.getReaction(emojiStr);
+                // Give the emoji's roles to the user
+                ReactEmoji reactEmoji = reactMessage.getEmoji(emoji);
                 Member member = event.getMember().get();
-                emote.getRoleMap().values().forEach(role -> member.addRole(Snowflake.of(role.getId())).block());
+                reactEmoji.getRoleList().forEach(role -> member.addRole(role.getId()).block());
             }
         }
     }
@@ -45,117 +52,119 @@ public class ReactManager
     {
         Message message = event.getMessage().block();
         User user = event.getUser().block();
-        // Check if the message has a container
-        if (!user.isBot() && hasContainer(message))
+        // Check if the message has data
+        if (!user.isBot() && has(message))
         {
-            ReactContainer container = getContainer(message);
+            ReactMessage reactMessage = get(message);
             ReactionEmoji emoji = event.getEmoji();
-            String emojiStr = Util.emojiToString(emoji);
-            // Check if the container has this emoji
-            if (container.getReactionMap().containsKey(emojiStr))
+            // Check if the message has this emoji
+            if (reactMessage.hasEmoji(emoji))
             {
-                // Remove the reaction's roles from the user
-                ReactReaction emote = container.getReaction(emojiStr);
-                Member member = user.asMember(event.getGuildId().get()).block();
-                emote.getRoleMap().values().stream()
+                // Remove the emoji's roles from the user
+                ReactEmoji reactEmoji = reactMessage.getEmoji(emoji);
+                Member member = event.getGuild().flatMap(g -> g.getMemberById(user.getId())).block();
+                reactEmoji.getRoleList().stream()
                         .filter(role -> role.getType() != ONCE)
-                        .forEach(role -> member.removeRole(Snowflake.of(role.getId())).block());
+                        .forEach(role -> member.removeRole(role.getId()).block());
             }
         }
     }
 
-    public Map<String, ReactContainer> getContainerMap()
+    public Map<String, ReactMessage> getMessageMap()
     {
-        return containerMap;
+        return messageMap;
     }
 
-    public void setContainerMap(Map<String, ReactContainer> containerMap)
+    public ReactMessage get(Message message)
     {
-        this.containerMap = containerMap;
+        return messageMap.getOrDefault(message.getId().asString(), null);
     }
 
-    public ReactContainer getContainer(Message message)
+    public ReactMessage add(Message message)
     {
-        return getContainerMap().get(message.getId().asString());
+        return messageMap.put(message.getId().asString(), new ReactMessage(message.getId().asString(), message.getChannelId().asString()));
     }
 
-    public ReactContainer getOrAddContainer(Message message)
+    public ReactMessage getOrAdd(Message message)
     {
-        if (!hasContainer(message))
-            addContainer(message);
-        return getContainer(message);
+        if (!has(message))
+            add(message);
+        return get(message);
     }
 
-    public ReactContainer addContainer(Message message)
+    public ReactMessage remove(Message message)
     {
-        return containerMap.put(message.getId().asString(), new ReactContainer(message.getId().asString()));
+        return messageMap.remove(message.getId().asString());
     }
 
-    public ReactContainer removeContainer(Message message)
+    public boolean has(Message message)
     {
-        return containerMap.remove(message.getId().asString());
+        return messageMap.containsKey(message.getId().asString());
     }
 
-    public boolean hasContainer(Message message)
+    public void update(ReactMessage reactMessage)
     {
-        return containerMap.containsKey(message.getId().asString());
+        Message message = reactMessage.getMessage().block();
+        // Add each emoji to the message
+        reactMessage.getEmojiList().forEach(emoji -> message.addReaction(emoji.getReaction()).block());
+        // Add "missed" roles, anything the bot somehow didn't catch
+        Snowflake guildId = message.getGuild().block().getId();
+        // Get each emoji and role
+        reactMessage.getEmojiList().forEach(emoji -> emoji.getRoleList().forEach(role ->
+                message.getReactors(emoji.getReaction()).toStream().forEach(user ->
+                {
+                    Member member = user.asMember(guildId).onErrorResume(error -> Mono.empty()).block();
+                    if (member != null && member.getRoleIds().contains(role.getId())) {
+                        member.addRole(role.getId()).block();
+                    }
+                })));
     }
 
-    public void updateContainer(Message message)
+    public void addRoleToEmoji(ReactMessage reactMessage, ReactionEmoji emoji, Role role, ReactRole.Type type)
     {
-        if (hasContainer(message))
+        reactMessage.getOrAddEmoji(emoji).addRole(role, type);
+
+        reactMessage.getMessage().map(m -> m.addReaction(emoji)).subscribe();
+    }
+
+    public void removeRoleFromEmoji(ReactMessage reactMessage, ReactionEmoji emoji, Role role)
+    {
+        Message message = reactMessage.getMessage().block();
+        ReactEmoji reactEmoji = reactMessage.getEmoji(emoji);
+
+        // Remove the role from the emoji
+        reactEmoji.removeRole(role);
+
+        // Check if the emoji has no more roles
+        if (reactEmoji.getRoleMap().isEmpty())
         {
-            ReactContainer container = getContainer(message);
-            // Add each reaction in the container to the message
-            container.getReactionMap().values().forEach(emote -> message.addReaction(Util.stringToEmoji(emote.getEmoji())).block());
-            // Add "missed" reactions, anything the bot somehow didn't catch
-            Snowflake guildId = message.getGuild().block().getId();
-            container.getReactionMap().values().forEach(emote -> emote.getRoleMap().values().stream()
-                    .map(role -> Snowflake.of(role.getId()))
-                    .forEach(roleId -> message.getReactors(Util.stringToEmoji(emote.getEmoji()))
-                            .flatMap(user -> user.asMember(guildId))
-                            .filter(user -> !user.getRoleIds().contains(roleId))
-                            .map(user -> user.addRole(roleId))
-                            .subscribe()));
+            // Remove the emoji
+            reactMessage.removeEmoji(emoji);
+            message.removeReactions(emoji).block();
+        }
+
+        // Check if the message has no more emojis
+        if (reactMessage.getEmojiMap().isEmpty())
+        {
+            remove(message);
         }
     }
 
-    public void addRoleToEmoji(Message message, ReactionEmoji emoji, Role role, ReactRole.Type type)
+    public void removeRole(ReactMessage reactMessage, Role role)
     {
-        getOrAddContainer(message).getOrAddReaction(Util.emojiToString(emoji)).addRole(role.getId().asString(), type);
-
-        message.addReaction(emoji).block();
+        reactMessage.getEmojiList().forEach(e -> removeRoleFromEmoji(reactMessage, e.getReaction(), role));
     }
 
-    public void removeRoleFromEmoji(Message message, ReactionEmoji emoji, Role role)
+    @Override
+    public Snubot getParent()
     {
-        if (hasContainer(message))
-        {
-            String emojiStr = Util.emojiToString(emoji);
-            ReactContainer container = getContainer(message);
-            ReactReaction emote = container.getReaction(emojiStr);
-
-            emote.getRoleMap().remove(role.getId().asString());
-
-            if (emote.getRoleMap().isEmpty())
-            {
-                container.getReactionMap().remove(emojiStr);
-                message.removeReactions(emoji).block();
-            }
-
-            if (container.getReactionMap().isEmpty())
-            {
-                removeContainer(message);
-            }
-        }
+        return parent;
     }
 
-    public void removeRoleFromAll(Message message, Role role)
+    @Override
+    public void register(GatewayDiscordClient gateway)
     {
-        if (hasContainer(message))
-        {
-            for (ReactReaction reaction : new LinkedList<>(getContainer(message).getReactionMap().values()))
-                removeRoleFromEmoji(message, Util.stringToEmoji(reaction.getEmoji()), role);
-        }
+        gateway.on(ReactionAddEvent.class).subscribe(this::onReactAdd);
+        gateway.on(ReactionRemoveEvent.class).subscribe(this::onReactRemove);
     }
 }
