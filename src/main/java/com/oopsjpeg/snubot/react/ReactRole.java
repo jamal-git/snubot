@@ -1,26 +1,35 @@
 package com.oopsjpeg.snubot.react;
 
-import discord4j.common.util.Snowflake;
+import com.oopsjpeg.snubot.data.ChildData;
+import com.oopsjpeg.snubot.data.DiscordData;
 
-public class ReactRole
+public class ReactRole extends DiscordData implements ChildData<ReactEmoji>
 {
-    private final String id;
     private final Type type;
+
+    private transient ReactEmoji parent;
 
     public ReactRole(final String id, final Type type)
     {
-        this.id = id;
+        super(id);
         this.type = type;
-    }
-
-    public Snowflake getId()
-    {
-        return Snowflake.of(id);
     }
 
     public Type getType()
     {
         return type;
+    }
+
+    @Override
+    public ReactEmoji getParent()
+    {
+        return parent;
+    }
+
+    @Override
+    public void setParent(ReactEmoji parent)
+    {
+        this.parent = parent;
     }
 
     public enum Type

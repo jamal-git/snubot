@@ -6,7 +6,7 @@ import com.oopsjpeg.snubot.command.CommandRegistry;
 import com.oopsjpeg.snubot.command.CommandUtil;
 import com.oopsjpeg.snubot.command.exception.CommandException;
 import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
-import com.oopsjpeg.snubot.data.GuildData;
+import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;

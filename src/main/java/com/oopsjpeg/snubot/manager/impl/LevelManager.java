@@ -1,8 +1,9 @@
-package com.oopsjpeg.snubot.manager;
+package com.oopsjpeg.snubot.manager.impl;
 
 import com.oopsjpeg.snubot.Snubot;
-import com.oopsjpeg.snubot.data.GuildData;
-import com.oopsjpeg.snubot.data.MemberData;
+import com.oopsjpeg.snubot.data.impl.GuildData;
+import com.oopsjpeg.snubot.data.impl.MemberData;
+import com.oopsjpeg.snubot.manager.Manager;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
@@ -29,14 +30,22 @@ public class LevelManager implements Manager
 
         if (author != null && guild != null && !author.isBot())
         {
-            GuildData guildData = parent.getGuildData(guild);
+            GuildData guildData = parent.getOrAddGuildData(guild);
             if (guildData != null)
             {
                 MemberData memberData = guildData.getOrAddMemberData(author);
-                // Give message XP if possible, then check for level ups
+                // Give message XP if possible
                 if (memberData.messageXp())
-                    // Update level-based roles when they level up
-                    guildData.getLeveling().syncRoles(author);
+                {
+                    guildData.markForSave();
+                    // Check for level ups
+                    if (memberData.levelUp())
+                    {
+                        // Update level-based roles when they level up
+                        guildData.getLeveling().syncRoles(author);
+                    }
+
+                }
             }
         }
     }

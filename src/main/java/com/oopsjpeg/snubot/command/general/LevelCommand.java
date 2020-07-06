@@ -6,8 +6,8 @@ import com.oopsjpeg.snubot.command.CommandRegistry;
 import com.oopsjpeg.snubot.command.exception.CommandException;
 import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
 import com.oopsjpeg.snubot.command.exception.PermissionException;
-import com.oopsjpeg.snubot.data.GuildData;
-import com.oopsjpeg.snubot.data.MemberData;
+import com.oopsjpeg.snubot.data.impl.GuildData;
+import com.oopsjpeg.snubot.data.impl.MemberData;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import com.oopsjpeg.snubot.util.Util;
 import discord4j.core.object.entity.*;
@@ -117,6 +117,7 @@ public class LevelCommand implements Command
 
                     GuildData guildData = bot.getOrAddGuildData(guild);
                     guildData.getLeveling().setMaxLevel(max);
+                    guildData.markForSave();
 
                     channel.createEmbed(ChatUtil.success(author, "Set maximum level to **" + max + "** in **" + guild.getName() + "**.")).block();
                 }

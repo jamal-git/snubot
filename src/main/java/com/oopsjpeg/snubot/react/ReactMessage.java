@@ -1,7 +1,8 @@
 package com.oopsjpeg.snubot.react;
 
-import com.oopsjpeg.snubot.Snubot;
-import com.oopsjpeg.snubot.data.DataObject;
+import com.oopsjpeg.snubot.data.DiscordData;
+import com.oopsjpeg.snubot.data.ChildData;
+import com.oopsjpeg.snubot.data.SaveData;
 import com.oopsjpeg.snubot.util.Util;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Message;
@@ -13,10 +14,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class ReactMessage extends DataObject
+public class ReactMessage extends DiscordData implements ChildData<ReactManager>, SaveData
 {
     private final String channelId;
     private final Map<String, ReactEmoji> emojiMap = new HashMap<>();
+
+    private transient ReactManager parent;
+    private transient boolean markedForSave;
 
     public ReactMessage(final String id, final String channelId)
     {
@@ -26,10 +30,15 @@ public class ReactMessage extends DataObject
 
     public Mono<Message> getMessage()
     {
-        return Snubot.getInstance().getGateway().getMessageById(getChannelId(), getId());
+        return parent.getParent().getGateway().getMessageById(getChannelIdAsSnowflake(), getIdAsSnowflake());
     }
 
-    public Snowflake getChannelId()
+    public String getChannelId()
+    {
+        return channelId;
+    }
+
+    public Snowflake getChannelIdAsSnowflake()
     {
         return Snowflake.of(channelId);
     }
@@ -39,14 +48,14 @@ public class ReactMessage extends DataObject
         return emojiMap;
     }
 
-    public int getEmojiCount()
-    {
-        return emojiMap.size();
-    }
-
     public List<ReactEmoji> getEmojiList()
     {
         return new LinkedList<>(emojiMap.values());
+    }
+
+    public int getEmojiCount()
+    {
+        return emojiMap.size();
     }
 
     public long getRoleCount()
@@ -56,7 +65,7 @@ public class ReactMessage extends DataObject
 
     public ReactEmoji getEmoji(String emoji)
     {
-        return emojiMap.getOrDefault(emoji, null);
+        return (ReactEmoji) emojiMap.get(emoji).parent(this);
     }
 
     public ReactEmoji getEmoji(ReactionEmoji emoji)
@@ -64,9 +73,25 @@ public class ReactMessage extends DataObject
         return getEmoji(Util.emojiToString(emoji));
     }
 
-    public void addEmoji(String emoji)
+    public ReactEmoji addEmoji(String emoji)
     {
         emojiMap.put(emoji, new ReactEmoji(emoji));
+        return getEmoji(emoji);
+    }
+
+    public ReactEmoji addEmoji(ReactionEmoji emoji)
+    {
+        return addEmoji(Util.emojiToString(emoji));
+    }
+
+    public void removeEmoji(String emoji)
+    {
+        emojiMap.remove(emoji);
+    }
+
+    public void removeEmoji(ReactionEmoji emoji)
+    {
+        removeEmoji(Util.emojiToString(emoji));
     }
 
     public boolean hasEmoji(String emoji)
@@ -91,8 +116,27 @@ public class ReactMessage extends DataObject
         return getOrAddEmoji(Util.emojiToString(emoji));
     }
 
-    public void removeEmoji(ReactionEmoji emoji)
+    @Override
+    public ReactManager getParent()
     {
-        emojiMap.remove(Util.emojiToString(emoji));
+        return parent;
+    }
+
+    @Override
+    public void setParent(ReactManager parent)
+    {
+        this.parent = parent;
+    }
+
+    @Override
+    public void setMarkedForSave(boolean markedForSave)
+    {
+        this.markedForSave = markedForSave;
+    }
+
+    @Override
+    public boolean isMarkedForSave()
+    {
+        return markedForSave;
     }
 }

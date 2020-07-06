@@ -9,14 +9,14 @@ import com.oopsjpeg.snubot.command.general.HelpCommand;
 import com.oopsjpeg.snubot.command.general.LevelCommand;
 import com.oopsjpeg.snubot.command.mod.ModRoleCommand;
 import com.oopsjpeg.snubot.command.mod.ReactIonRolesCommand;
-import com.oopsjpeg.snubot.data.DataObject;
-import com.oopsjpeg.snubot.data.GuildData;
-import com.oopsjpeg.snubot.data.UserData;
-import com.oopsjpeg.snubot.manager.LevelManager;
-import com.oopsjpeg.snubot.manager.MongoManager;
+import com.oopsjpeg.snubot.data.SaveData;
+import com.oopsjpeg.snubot.data.impl.GuildData;
+import com.oopsjpeg.snubot.data.impl.UserData;
+import com.oopsjpeg.snubot.manager.Manager;
+import com.oopsjpeg.snubot.manager.impl.LevelManager;
+import com.oopsjpeg.snubot.manager.impl.MongoManager;
 import com.oopsjpeg.snubot.react.ReactManager;
 import com.oopsjpeg.snubot.util.BadSettingsException;
-import com.oopsjpeg.snubot.manager.Manager;
 import com.oopsjpeg.snubot.util.Settings;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
@@ -64,10 +64,10 @@ public class Snubot
         return new File("snubot.properties");
     }
 
-    public static Snubot getInstance()
-    {
-        return instance;
-    }
+    //public static Snubot getInstance()
+    //{
+    //    return instance;
+    //}
 
     private void start() throws IOException, BadSettingsException
     {
@@ -131,9 +131,9 @@ public class Snubot
 
     public void saveAll()
     {
-        userDataMap.values().stream().filter(DataObject::isMarkedForSave).forEach(getMongoManager()::saveUserData);
-        guildDataMap.values().stream().filter(DataObject::isMarkedForSave).forEach(getMongoManager()::saveGuildData);
-        getReactManager().getMessageMap().values().stream().filter(DataObject::isMarkedForSave).forEach(getMongoManager()::saveReactMessage);
+        userDataMap.values().stream().filter(SaveData::isMarkedForSave).forEach(getMongoManager()::saveUserData);
+        guildDataMap.values().stream().filter(SaveData::isMarkedForSave).forEach(getMongoManager()::saveGuildData);
+        getReactManager().getMessageMap().values().stream().filter(SaveData::isMarkedForSave).forEach(getMongoManager()::saveReactMessage);
     }
 
     public List<Manager> getManagerList()
@@ -184,7 +184,7 @@ public class Snubot
 
     public UserData getUserData(String id)
     {
-        return userDataMap.getOrDefault(id, null);
+        return (UserData) userDataMap.get(id).parent(this);
     }
 
     public UserData getUserData(Snowflake id)
@@ -199,7 +199,7 @@ public class Snubot
 
     public GuildData getGuildData(String id)
     {
-        return guildDataMap.getOrDefault(id, null);
+        return (GuildData) guildDataMap.get(id).parent(this);
     }
 
     public GuildData getGuildData(Snowflake id)
@@ -244,6 +244,36 @@ public class Snubot
         return addGuildData(guild.getId());
     }
 
+    public void removeUserData(String id)
+    {
+        userDataMap.remove(id);
+    }
+
+    public void removeUserData(Snowflake id)
+    {
+        removeUserData(id.asString());
+    }
+
+    public void removeUserData(User user)
+    {
+        removeUserData(user.getId());
+    }
+
+    public void removeGuildData(String id)
+    {
+        guildDataMap.remove(id);
+    }
+
+    public void removeGuildData(Snowflake id)
+    {
+        removeGuildData(id.asString());
+    }
+
+    public void removeGuildData(Guild guild)
+    {
+        removeGuildData(guild.getId());
+    }
+
     public boolean hasUserData(String id)
     {
         return userDataMap.containsKey(id);
@@ -277,7 +307,7 @@ public class Snubot
     public UserData getOrAddUserData(String id)
     {
         if (!hasUserData(id))
-            addUserData(id);
+            return addUserData(id);
         return getUserData(id);
     }
 
@@ -294,7 +324,7 @@ public class Snubot
     public GuildData getOrAddGuildData(String id)
     {
         if (!hasGuildData(id))
-            addGuildData(id);
+            return addGuildData(id);
         return getGuildData(id);
     }
 

@@ -1,6 +1,6 @@
-package com.oopsjpeg.snubot.data;
+package com.oopsjpeg.snubot.data.impl;
 
-import com.oopsjpeg.snubot.Snubot;
+import com.oopsjpeg.snubot.data.ChildData;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class Leveling extends DataExtension<GuildData>
+public class Leveling implements ChildData<GuildData>
 {
     private final Map<String, Integer> rolesMap = new HashMap<>();
 
@@ -28,7 +28,7 @@ public class Leveling extends DataExtension<GuildData>
     {
         return rolesMap.entrySet().stream()
                 .filter(e -> level == e.getValue())
-                .map(e -> Snubot.getInstance().getGateway().getRoleById(getParent().getId(), Snowflake.of(e.getKey())).block())
+                .map(e -> parent.getParent().getGateway().getRoleById(getParent().getIdAsSnowflake(), Snowflake.of(e.getKey())).block())
                 .collect(Collectors.toList());
     }
 
@@ -51,7 +51,7 @@ public class Leveling extends DataExtension<GuildData>
     {
         if (getParent().hasMemberData(user))
         {
-            Member member = user.asMember(getParent().getId()).block();
+            Member member = user.asMember(getParent().getIdAsSnowflake()).block();
             MemberData memberData = getParent().getMemberData(user);
 
             rolesMap.forEach((id, level) ->
@@ -81,5 +81,17 @@ public class Leveling extends DataExtension<GuildData>
     public boolean hasMaxLevel()
     {
         return maxLevel != 0;
+    }
+
+    @Override
+    public GuildData getParent()
+    {
+        return parent;
+    }
+
+    @Override
+    public void setParent(GuildData parent)
+    {
+        this.parent = parent;
     }
 }

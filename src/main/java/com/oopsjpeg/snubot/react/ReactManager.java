@@ -43,7 +43,7 @@ public class ReactManager implements Manager
                 // Give the emoji's roles to the user
                 ReactEmoji reactEmoji = reactMessage.getEmoji(emoji);
                 Member member = event.getMember().get();
-                reactEmoji.getRoleList().forEach(role -> member.addRole(role.getId()).block());
+                reactEmoji.getRoleList().forEach(role -> member.addRole(role.getIdAsSnowflake()).block());
             }
         }
     }
@@ -65,7 +65,7 @@ public class ReactManager implements Manager
                 Member member = event.getGuild().flatMap(g -> g.getMemberById(user.getId())).block();
                 reactEmoji.getRoleList().stream()
                         .filter(role -> role.getType() != ONCE)
-                        .forEach(role -> member.removeRole(role.getId()).block());
+                        .forEach(role -> member.removeRole(role.getIdAsSnowflake()).block());
             }
         }
     }
@@ -75,14 +75,64 @@ public class ReactManager implements Manager
         return messageMap;
     }
 
+    public ReactMessage get(String id)
+    {
+        return (ReactMessage) messageMap.get(id).parent(this);
+    }
+
+    public ReactMessage get(Snowflake id)
+    {
+        return get(id.asString());
+    }
+
     public ReactMessage get(Message message)
     {
-        return messageMap.getOrDefault(message.getId().asString(), null);
+        return get(message.getId());
+    }
+
+    public ReactMessage add(String id, String channelId)
+    {
+        return messageMap.put(id, new ReactMessage(id, channelId));
+    }
+
+    public ReactMessage add(Snowflake id, Snowflake channelId)
+    {
+        return add(id.asString(), channelId.asString());
     }
 
     public ReactMessage add(Message message)
     {
-        return messageMap.put(message.getId().asString(), new ReactMessage(message.getId().asString(), message.getChannelId().asString()));
+        return add(message.getId(), message.getChannelId());
+    }
+
+    public void remove(String id)
+    {
+        messageMap.remove(id);
+    }
+
+    public void remove(Snowflake id)
+    {
+        remove(id.asString());
+    }
+
+    public void remove(Message message)
+    {
+        remove(message.getId());
+    }
+
+    public boolean has(String id)
+    {
+        return messageMap.containsKey(id);
+    }
+
+    public boolean has(Snowflake id)
+    {
+        return has(id.asString());
+    }
+
+    public boolean has(Message message)
+    {
+        return has(message.getId());
     }
 
     public ReactMessage getOrAdd(Message message)
@@ -90,16 +140,6 @@ public class ReactManager implements Manager
         if (!has(message))
             add(message);
         return get(message);
-    }
-
-    public ReactMessage remove(Message message)
-    {
-        return messageMap.remove(message.getId().asString());
-    }
-
-    public boolean has(Message message)
-    {
-        return messageMap.containsKey(message.getId().asString());
     }
 
     public void update(ReactMessage reactMessage)
@@ -114,9 +154,8 @@ public class ReactManager implements Manager
                 message.getReactors(emoji.getReaction()).toStream().forEach(user ->
                 {
                     Member member = user.asMember(guildId).onErrorResume(error -> Mono.empty()).block();
-                    if (member != null && member.getRoleIds().contains(role.getId())) {
-                        member.addRole(role.getId()).block();
-                    }
+                    if (member != null && member.getRoleIds().contains(role.getIdAsSnowflake()))
+                        member.addRole(role.getIdAsSnowflake()).block();
                 })));
     }
 

@@ -2,7 +2,7 @@ package com.oopsjpeg.snubot.command;
 
 import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.command.exception.*;
-import com.oopsjpeg.snubot.data.GuildData;
+import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import com.oopsjpeg.snubot.manager.Manager;
 import com.oopsjpeg.snubot.util.Util;
@@ -65,7 +65,7 @@ public class CommandManager implements Manager
                             GuildData data = getParent().getGuildData(guild);
                             Member member = guild.getMemberById(author.getId()).block();
 
-                            if (!data.hasModRole() || !member.getRoleIds().contains(data.getModRoleId()))
+                            if (!data.hasModRole() || !member.getRoleIds().contains(data.getModRoleIdAsSnowflake()))
                                 throw new ModOnlyException();
                         }
 

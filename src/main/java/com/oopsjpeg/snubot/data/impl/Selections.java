@@ -1,15 +1,17 @@
-package com.oopsjpeg.snubot.data;
+package com.oopsjpeg.snubot.data.impl;
 
 import com.google.gson.annotations.SerializedName;
-import com.oopsjpeg.snubot.Snubot;
+import com.oopsjpeg.snubot.data.ChildData;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import reactor.core.publisher.Mono;
 
-public class Selections extends DataExtension<UserData>
+public class Selections implements ChildData<UserData>
 {
+    private transient UserData parent;
+
     @SerializedName("guild_id")
     private String guildId;
     @SerializedName("channel_id")
@@ -19,17 +21,17 @@ public class Selections extends DataExtension<UserData>
 
     public Mono<Guild> getGuild()
     {
-        return Snubot.getInstance().getGateway().getGuildById(getGuildId());
+        return parent.getParent().getGateway().getGuildById(getGuildId());
     }
 
     public Mono<TextChannel> getChannel()
     {
-        return Snubot.getInstance().getGateway().getChannelById(getChannelId()).cast(TextChannel.class);
+        return parent.getParent().getGateway().getChannelById(getChannelId()).cast(TextChannel.class);
     }
 
     public Mono<Message> getMessage()
     {
-        return Snubot.getInstance().getGateway().getMessageById(getChannelId(), getMessageId());
+        return parent.getParent().getGateway().getMessageById(getChannelId(), getMessageId());
     }
 
     public void setMessage(Message message)
@@ -72,5 +74,17 @@ public class Selections extends DataExtension<UserData>
     public Snowflake getMessageId()
     {
         return Snowflake.of(messageId);
+    }
+
+    @Override
+    public UserData getParent()
+    {
+        return parent;
+    }
+
+    @Override
+    public void setParent(UserData parent)
+    {
+        this.parent = parent;
     }
 }

@@ -1,14 +1,13 @@
-package com.oopsjpeg.snubot.data;
+package com.oopsjpeg.snubot.data.impl;
 
-import discord4j.common.util.Snowflake;
+import com.oopsjpeg.snubot.data.DiscordData;
+import com.oopsjpeg.snubot.data.ChildData;
 
 import java.util.Random;
 
-public class MemberData extends DataExtension<GuildData>
+public class MemberData extends DiscordData implements ChildData<GuildData>
 {
     private static final Random RANDOM = new Random();
-
-    private final String id;
 
     private transient GuildData parent;
 
@@ -19,17 +18,7 @@ public class MemberData extends DataExtension<GuildData>
 
     public MemberData(final String id)
     {
-        this.id = id;
-    }
-
-    public Snowflake getId()
-    {
-        return Snowflake.of(id);
-    }
-
-    public String getRawId()
-    {
-        return id;
+        super(id);
     }
 
     public static int maxXp(int level)
@@ -58,7 +47,7 @@ public class MemberData extends DataExtension<GuildData>
         {
             lastMessageMillis = System.currentTimeMillis();
             addXp(24 + RANDOM.nextInt(10));
-            return levelUp();
+            return true;
         }
         return false;
     }
@@ -97,15 +86,14 @@ public class MemberData extends DataExtension<GuildData>
     }
 
     @Override
-    public MemberData parent(GuildData parent)
-    {
-        this.parent = parent;
-        return this;
-    }
-
-    @Override
     public GuildData getParent()
     {
         return parent;
+    }
+
+    @Override
+    public void setParent(GuildData parent)
+    {
+        this.parent = parent;
     }
 }
