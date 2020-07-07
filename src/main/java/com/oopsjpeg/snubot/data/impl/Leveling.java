@@ -6,45 +6,89 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Leveling implements ChildData<GuildData>
 {
-    private final Map<String, Integer> rolesMap = new HashMap<>();
+    private final Map<String, LevelRole> roleMap = new HashMap<>();
 
     private transient GuildData parent;
 
     private int maxLevel;
 
-    public Map<String, Integer> getRolesMap()
+    public Map<String, LevelRole> getRoleMap()
     {
-        return rolesMap;
+        return roleMap;
     }
 
-    public List<Role> getRoles(int level)
+    public List<Role> getRolesForLevel(int level)
     {
-        return rolesMap.entrySet().stream()
-                .filter(e -> level == e.getValue())
-                .map(e -> parent.getParent().getGateway().getRoleById(getParent().getIdAsSnowflake(), Snowflake.of(e.getKey())).block())
+        return roleMap.values().stream()
+                .filter(r -> r.getLevel() == level)
+                .map(r -> r.getRole().block())
                 .collect(Collectors.toList());
     }
 
-    public void addRole(Role role, int level)
+    public LevelRole getRole(String id)
     {
-        rolesMap.put(role.getId().asString(), level);
+        return (LevelRole) roleMap.get(id).parent(this);
+    }
+
+    public LevelRole getRole(Snowflake id)
+    {
+        return getRole(id.asString());
+    }
+
+    public LevelRole getRole(Role role)
+    {
+        return getRole(role.getId());
+    }
+
+    public LevelRole addRole(String id, int level)
+    {
+        roleMap.put(id, new LevelRole(id, level));
+        return getRole(id);
+    }
+    
+    public LevelRole addRole(Snowflake id, int level)
+    {
+        return addRole(id.asString(), level);
+    }
+
+    public LevelRole addRole(Role role, int level)
+    {
+        return addRole(role.getId(), level);
+    }
+
+    public void removeRole(String id)
+    {
+        roleMap.remove(id);
+    }
+
+    public void removeRole(Snowflake id)
+    {
+        removeRole(id.asString());
     }
 
     public void removeRole(Role role)
     {
-        rolesMap.remove(role.getId().asString());
+        removeRole(role.getId());
+    }
+
+    public boolean hasRole(String id)
+    {
+        return roleMap.containsKey(id);
+    }
+
+    public boolean hasRole(Snowflake id)
+    {
+        return hasRole(id.asString());
     }
 
     public boolean hasRole(Role role)
     {
-        return rolesMap.containsKey(role.getId().asString());
+        return hasRole(role.getId());
     }
 
     public void syncRoles(User user)
@@ -54,16 +98,13 @@ public class Leveling implements ChildData<GuildData>
             Member member = user.asMember(getParent().getIdAsSnowflake()).block();
             MemberData memberData = getParent().getMemberData(user);
 
-            rolesMap.forEach((id, level) ->
+            roleMap.values().forEach(r ->
             {
-                level--;
-                Snowflake roleId = Snowflake.of(id);
+                if (memberData.getLevel() >= r.getLevel() && !member.getRoleIds().contains(r.getRoleIdAsSnowflake()))
+                    member.addRole(r.getRoleIdAsSnowflake()).block();
 
-                if (memberData.getLevel() >= level && !member.getRoleIds().contains(roleId))
-                    member.addRole(roleId).block();
-
-                if (memberData.getLevel() < level && member.getRoleIds().contains(roleId))
-                    member.removeRole(roleId).block();
+                if (memberData.getLevel() < r.getLevel() && member.getRoleIds().contains(r.getRoleIdAsSnowflake()))
+                    member.removeRole(r.getRoleIdAsSnowflake()).block();
             });
         }
     }
@@ -94,4 +135,5 @@ public class Leveling implements ChildData<GuildData>
     {
         this.parent = parent;
     }
+
 }

@@ -10,11 +10,10 @@ public class MemberData extends DiscordData implements ChildData<GuildData>
     private static final Random RANDOM = new Random();
 
     private transient GuildData parent;
+    private transient long lastMessageMillis;
 
     private int xp;
     private int level;
-
-    private transient long lastMessageMillis;
 
     public MemberData(final String id)
     {

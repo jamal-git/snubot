@@ -1,6 +1,5 @@
 package com.oopsjpeg.snubot.data.impl;
 
-import com.google.gson.annotations.SerializedName;
 import com.oopsjpeg.snubot.data.ChildData;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
@@ -12,33 +11,111 @@ public class Selections implements ChildData<UserData>
 {
     private transient UserData parent;
 
-    @SerializedName("guild_id")
     private String guildId;
-    @SerializedName("channel_id")
     private String channelId;
-    @SerializedName("message_id")
     private String messageId;
+
+    public String getGuildId()
+    {
+        return guildId;
+    }
+
+    public Snowflake getGuildIdAsSnowflake()
+    {
+        return Snowflake.of(guildId);
+    }
 
     public Mono<Guild> getGuild()
     {
-        return parent.getParent().getGateway().getGuildById(getGuildId());
+        return parent.getParent().getGateway().getGuildById(getGuildIdAsSnowflake());
+    }
+
+    public void setGuildId(String guildId)
+    {
+        this.guildId = guildId;
+    }
+
+    public void setGuildId(Snowflake guildId)
+    {
+        setGuildId(guildId.asString());
+    }
+
+    public void setGuild(Guild guild)
+    {
+        setGuildId(guild.getId());
+    }
+
+    public boolean hasGuild()
+    {
+        return guildId != null;
+    }
+
+    public String getChannelId()
+    {
+        return channelId;
+    }
+
+    public Snowflake getChannelIdAsSnowflake()
+    {
+        return Snowflake.of(channelId);
     }
 
     public Mono<TextChannel> getChannel()
     {
-        return parent.getParent().getGateway().getChannelById(getChannelId()).cast(TextChannel.class);
+        return parent.getParent().getGateway().getChannelById(getChannelIdAsSnowflake()).cast(TextChannel.class);
+    }
+
+    public void setChannelId(String channelId)
+    {
+        this.channelId = channelId;
+    }
+
+    public void setChannelId(Snowflake channelId)
+    {
+        setChannelId(channelId.asString());
+    }
+
+    public void setChannel(TextChannel channel)
+    {
+        setGuildId(channel.getGuildId());
+        setChannelId(channel.getId());
+    }
+
+    public boolean hasChannel()
+    {
+        return channelId != null;
+    }
+
+    public String getMessageId()
+    {
+        return messageId;
+    }
+
+    public Snowflake getMessageIdAsSnowflake()
+    {
+        return Snowflake.of(messageId);
     }
 
     public Mono<Message> getMessage()
     {
-        return parent.getParent().getGateway().getMessageById(getChannelId(), getMessageId());
+        return parent.getParent().getGateway().getMessageById(getChannelIdAsSnowflake(), getMessageIdAsSnowflake());
+    }
+
+    public void setMessageId(String messageId)
+    {
+        this.messageId = messageId;
+    }
+
+    public void setMessageId(Snowflake messageId)
+    {
+        setMessageId(messageId.asString());
     }
 
     public void setMessage(Message message)
     {
-        guildId = message.getGuild().block().getId().asString();
-        channelId = message.getChannelId().asString();
-        messageId = message.getId().asString();
+        setGuildId(message.getGuild().block().getId());
+        setChannelId(message.getChannelId());
+        setMessageId(message.getId());
     }
 
     public boolean hasMessage()
@@ -59,21 +136,6 @@ public class Selections implements ChildData<UserData>
     public String getMessageUrl()
     {
         return getChannelUrl() + "/" + messageId;
-    }
-
-    public Snowflake getGuildId()
-    {
-        return Snowflake.of(guildId);
-    }
-
-    public Snowflake getChannelId()
-    {
-        return Snowflake.of(channelId);
-    }
-
-    public Snowflake getMessageId()
-    {
-        return Snowflake.of(messageId);
     }
 
     @Override

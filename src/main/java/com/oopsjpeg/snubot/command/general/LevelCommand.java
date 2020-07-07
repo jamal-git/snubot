@@ -7,6 +7,7 @@ import com.oopsjpeg.snubot.command.exception.CommandException;
 import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
 import com.oopsjpeg.snubot.command.exception.PermissionException;
 import com.oopsjpeg.snubot.data.impl.GuildData;
+import com.oopsjpeg.snubot.data.impl.LevelRole;
 import com.oopsjpeg.snubot.data.impl.MemberData;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import com.oopsjpeg.snubot.util.Util;
@@ -67,7 +68,7 @@ public class LevelCommand implements Command
                     throw new InvalidUsageException(this, registry, "removerole <role>");
 
                 GuildData guildData = bot.getOrAddGuildData(guild);
-                tryLevelRolesNotEmpty(guild, guildData);
+                tryRolesNotEmpty(guild, guildData);
                 Role role = tryRole(guild, args[1]);
 
                 if (!guildData.getLeveling().hasRole(role))
@@ -82,11 +83,11 @@ public class LevelCommand implements Command
             else if (args[0].equalsIgnoreCase("list"))
             {
                 GuildData guildData = bot.getOrAddGuildData(guild);
-                tryLevelRolesNotEmpty(guild, guildData);
+                tryRolesNotEmpty(guild, guildData);
 
-                channel.createEmbed(ChatUtil.info(author, guildData.getLeveling().getRolesMap().values().stream()
-                        .sorted(Comparator.comparingInt(i -> i))
-                        .map(i -> "Level " + i + ": " + guildData.getLeveling().getRoles(i).stream()
+                channel.createEmbed(ChatUtil.info(author, guildData.getLeveling().getRoleMap().values().stream()
+                        .sorted(Comparator.comparingInt(LevelRole::getLevel))
+                        .map(i -> "Level " + i + ": " + guildData.getLeveling().getRolesForLevel(i.getLevel()).stream()
                                 .map(Role::getName)
                                 .collect(Collectors.joining(", ")))
                         .collect(Collectors.joining("\n")))).block();
@@ -95,7 +96,7 @@ public class LevelCommand implements Command
             else if (args[0].equalsIgnoreCase("sync"))
             {
                 GuildData guildData = bot.getOrAddGuildData(guild);
-                tryLevelRolesNotEmpty(guild, guildData);
+                tryRolesNotEmpty(guild, guildData);
 
                 guildData.getLeveling().syncRoles(author);
 
@@ -133,9 +134,9 @@ public class LevelCommand implements Command
             throw new PermissionException();
     }
 
-    private void tryLevelRolesNotEmpty(Guild guild, GuildData data) throws CommandException
+    private void tryRolesNotEmpty(Guild guild, GuildData data) throws CommandException
     {
-        if (data == null || data.getLeveling().getRolesMap().isEmpty())
+        if (data == null || data.getLeveling().getRoleMap().isEmpty())
             throw new CommandException("There are no level-based roles in **" + guild.getName() + "**.");
     }
 
