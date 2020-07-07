@@ -7,7 +7,7 @@ public interface SaveData
         setMarkedForSave(true);
     }
 
-    void setMarkedForSave(boolean markedForSave);
-
     boolean isMarkedForSave();
+
+    void setMarkedForSave(boolean markedForSave);
 }

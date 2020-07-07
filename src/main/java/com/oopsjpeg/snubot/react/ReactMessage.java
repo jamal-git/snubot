@@ -1,7 +1,7 @@
 package com.oopsjpeg.snubot.react;
 
-import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.ChildData;
+import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.SaveData;
 import com.oopsjpeg.snubot.util.Util;
 import discord4j.common.util.Snowflake;
@@ -129,14 +129,14 @@ public class ReactMessage extends DiscordData implements ChildData<ReactManager>
     }
 
     @Override
-    public void setMarkedForSave(boolean markedForSave)
-    {
-        this.markedForSave = markedForSave;
-    }
-
-    @Override
     public boolean isMarkedForSave()
     {
         return markedForSave;
+    }
+
+    @Override
+    public void setMarkedForSave(boolean markedForSave)
+    {
+        this.markedForSave = markedForSave;
     }
 }

@@ -1,8 +1,8 @@
 package com.oopsjpeg.snubot.data.impl;
 
 import com.oopsjpeg.snubot.Snubot;
-import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.ChildData;
+import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.SaveData;
 
 public class UserData extends DiscordData implements ChildData<Snubot>, SaveData

@@ -37,13 +37,13 @@ public class ModRoleCommand implements Command
         // Set the moderator role
         else
         {
-           Role role = CommandUtil.tryRole(guild, String.join(" ", args));
+            Role role = CommandUtil.tryRole(guild, String.join(" ", args));
 
-           GuildData data = bot.getOrAddGuildData(guild);
-           data.setModRole(role);
-           data.markForSave();
+            GuildData data = bot.getOrAddGuildData(guild);
+            data.setModRole(role);
+            data.markForSave();
 
-           channel.createEmbed(ChatUtil.success(author, "Set the moderator role to **" + role.getName() + "**.")).block();
+            channel.createEmbed(ChatUtil.success(author, "Set the moderator role to **" + role.getName() + "**.")).block();
         }
     }
 

@@ -1,8 +1,8 @@
 package com.oopsjpeg.snubot.data.impl;
 
 import com.oopsjpeg.snubot.Snubot;
-import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.ChildData;
+import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.SaveData;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Role;
@@ -120,16 +120,6 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
         return modRoleId;
     }
 
-    public Snowflake getModRoleIdAsSnowflake()
-    {
-        return Snowflake.of(modRoleId);
-    }
-
-    public Mono<Role> getModRole()
-    {
-        return parent.getGateway().getRoleById(getIdAsSnowflake(), getModRoleIdAsSnowflake());
-    }
-
     public void setModRoleId(String modRoleId)
     {
         this.modRoleId = modRoleId;
@@ -138,6 +128,16 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
     public void setModRoleId(Snowflake modRoleId)
     {
         setModRoleId(modRoleId.asString());
+    }
+
+    public Snowflake getModRoleIdAsSnowflake()
+    {
+        return Snowflake.of(modRoleId);
+    }
+
+    public Mono<Role> getModRole()
+    {
+        return parent.getGateway().getRoleById(getIdAsSnowflake(), getModRoleIdAsSnowflake());
     }
 
     public void setModRole(Role role)
@@ -163,14 +163,14 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
     }
 
     @Override
-    public void setMarkedForSave(boolean markedForSave)
-    {
-        this.markedForSave = markedForSave;
-    }
-
-    @Override
     public boolean isMarkedForSave()
     {
         return markedForSave;
+    }
+
+    @Override
+    public void setMarkedForSave(boolean markedForSave)
+    {
+        this.markedForSave = markedForSave;
     }
 }

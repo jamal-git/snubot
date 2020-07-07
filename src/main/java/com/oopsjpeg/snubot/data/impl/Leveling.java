@@ -6,7 +6,9 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Leveling implements ChildData<GuildData>
@@ -50,7 +52,7 @@ public class Leveling implements ChildData<GuildData>
         roleMap.put(id, new LevelRole(id, level));
         return getRole(id);
     }
-    
+
     public LevelRole addRole(Snowflake id, int level)
     {
         return addRole(id.asString(), level);

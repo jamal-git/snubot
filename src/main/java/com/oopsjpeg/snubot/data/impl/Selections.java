@@ -20,16 +20,6 @@ public class Selections implements ChildData<UserData>
         return guildId;
     }
 
-    public Snowflake getGuildIdAsSnowflake()
-    {
-        return Snowflake.of(guildId);
-    }
-
-    public Mono<Guild> getGuild()
-    {
-        return parent.getParent().getGateway().getGuildById(getGuildIdAsSnowflake());
-    }
-
     public void setGuildId(String guildId)
     {
         this.guildId = guildId;
@@ -38,6 +28,16 @@ public class Selections implements ChildData<UserData>
     public void setGuildId(Snowflake guildId)
     {
         setGuildId(guildId.asString());
+    }
+
+    public Snowflake getGuildIdAsSnowflake()
+    {
+        return Snowflake.of(guildId);
+    }
+
+    public Mono<Guild> getGuild()
+    {
+        return parent.getParent().getGateway().getGuildById(getGuildIdAsSnowflake());
     }
 
     public void setGuild(Guild guild)
@@ -55,16 +55,6 @@ public class Selections implements ChildData<UserData>
         return channelId;
     }
 
-    public Snowflake getChannelIdAsSnowflake()
-    {
-        return Snowflake.of(channelId);
-    }
-
-    public Mono<TextChannel> getChannel()
-    {
-        return parent.getParent().getGateway().getChannelById(getChannelIdAsSnowflake()).cast(TextChannel.class);
-    }
-
     public void setChannelId(String channelId)
     {
         this.channelId = channelId;
@@ -73,6 +63,16 @@ public class Selections implements ChildData<UserData>
     public void setChannelId(Snowflake channelId)
     {
         setChannelId(channelId.asString());
+    }
+
+    public Snowflake getChannelIdAsSnowflake()
+    {
+        return Snowflake.of(channelId);
+    }
+
+    public Mono<TextChannel> getChannel()
+    {
+        return parent.getParent().getGateway().getChannelById(getChannelIdAsSnowflake()).cast(TextChannel.class);
     }
 
     public void setChannel(TextChannel channel)
@@ -91,16 +91,6 @@ public class Selections implements ChildData<UserData>
         return messageId;
     }
 
-    public Snowflake getMessageIdAsSnowflake()
-    {
-        return Snowflake.of(messageId);
-    }
-
-    public Mono<Message> getMessage()
-    {
-        return parent.getParent().getGateway().getMessageById(getChannelIdAsSnowflake(), getMessageIdAsSnowflake());
-    }
-
     public void setMessageId(String messageId)
     {
         this.messageId = messageId;
@@ -109,6 +99,16 @@ public class Selections implements ChildData<UserData>
     public void setMessageId(Snowflake messageId)
     {
         setMessageId(messageId.asString());
+    }
+
+    public Snowflake getMessageIdAsSnowflake()
+    {
+        return Snowflake.of(messageId);
+    }
+
+    public Mono<Message> getMessage()
+    {
+        return parent.getParent().getGateway().getMessageById(getChannelIdAsSnowflake(), getMessageIdAsSnowflake());
     }
 
     public void setMessage(Message message)

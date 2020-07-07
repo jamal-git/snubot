@@ -1,7 +1,7 @@
 package com.oopsjpeg.snubot.data.impl;
 
-import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.ChildData;
+import com.oopsjpeg.snubot.data.DiscordData;
 
 import java.util.Random;
 
