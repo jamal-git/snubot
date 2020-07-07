@@ -102,11 +102,11 @@ public class Leveling implements ChildData<GuildData>
 
             roleMap.values().forEach(r ->
             {
-                if (memberData.getLevel() >= r.getLevel() && !member.getRoleIds().contains(r.getRoleIdAsSnowflake()))
-                    member.addRole(r.getRoleIdAsSnowflake()).block();
+                if (memberData.getLevel() >= r.getLevel() && !member.getRoleIds().contains(r.getIdAsSnowflake()))
+                    member.addRole(r.getIdAsSnowflake()).block();
 
-                if (memberData.getLevel() < r.getLevel() && member.getRoleIds().contains(r.getRoleIdAsSnowflake()))
-                    member.removeRole(r.getRoleIdAsSnowflake()).block();
+                if (memberData.getLevel() < r.getLevel() && member.getRoleIds().contains(r.getIdAsSnowflake()))
+                    member.removeRole(r.getIdAsSnowflake()).block();
             });
         }
     }
