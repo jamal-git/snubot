@@ -7,6 +7,7 @@ import com.oopsjpeg.snubot.data.SaveData;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.TextChannel;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
@@ -21,6 +22,7 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
     private transient boolean markedForSave;
 
     private String modRoleId;
+    private String logChannelId;
 
     public GuildData(final String id)
     {
@@ -120,16 +122,6 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
         return modRoleId;
     }
 
-    public void setModRoleId(String modRoleId)
-    {
-        this.modRoleId = modRoleId;
-    }
-
-    public void setModRoleId(Snowflake modRoleId)
-    {
-        setModRoleId(modRoleId.asString());
-    }
-
     public Snowflake getModRoleIdAsSnowflake()
     {
         return Snowflake.of(modRoleId);
@@ -140,6 +132,16 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
         return parent.getGateway().getRoleById(getIdAsSnowflake(), getModRoleIdAsSnowflake());
     }
 
+    public void setModRoleId(String modRoleId)
+    {
+        this.modRoleId = modRoleId;
+    }
+
+    public void setModRoleId(Snowflake modRoleId)
+    {
+        setModRoleId(modRoleId.asString());
+    }
+
     public void setModRole(Role role)
     {
         setModRoleId(role.getId());
@@ -148,6 +150,41 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
     public boolean hasModRole()
     {
         return modRoleId != null;
+    }
+
+    public String getLogChannelId()
+    {
+        return logChannelId;
+    }
+
+    public Snowflake getLogChannelIdAsSnowflake()
+    {
+        return Snowflake.of(logChannelId);
+    }
+
+    public Mono<TextChannel> getLogChannel()
+    {
+        return parent.getGateway().getChannelById(getLogChannelIdAsSnowflake()).cast(TextChannel.class);
+    }
+
+    public void setLogChannelId(String logChannelId)
+    {
+        this.logChannelId = logChannelId;
+    }
+
+    public void setLogChannelId(Snowflake logChannelId)
+    {
+        setLogChannelId(logChannelId.asString());
+    }
+
+    public void setLogChannel(TextChannel channel)
+    {
+        setLogChannelId(channel.getId());
+    }
+
+    public boolean hasLogChannel()
+    {
+        return logChannelId != null;
     }
 
     @Override

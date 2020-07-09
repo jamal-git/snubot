@@ -7,6 +7,7 @@ import com.oopsjpeg.snubot.command.CommandRegistry;
 import com.oopsjpeg.snubot.command.dev.SaveAllCommand;
 import com.oopsjpeg.snubot.command.general.HelpCommand;
 import com.oopsjpeg.snubot.command.general.LevelCommand;
+import com.oopsjpeg.snubot.command.mod.LogCommand;
 import com.oopsjpeg.snubot.command.mod.ModRoleCommand;
 import com.oopsjpeg.snubot.command.mod.ReactIonRolesCommand;
 import com.oopsjpeg.snubot.data.SaveData;
@@ -14,6 +15,7 @@ import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.data.impl.UserData;
 import com.oopsjpeg.snubot.manager.Manager;
 import com.oopsjpeg.snubot.manager.impl.LevelManager;
+import com.oopsjpeg.snubot.manager.impl.LogManager;
 import com.oopsjpeg.snubot.manager.impl.MongoManager;
 import com.oopsjpeg.snubot.react.ReactManager;
 import com.oopsjpeg.snubot.util.BadSettingsException;
@@ -81,13 +83,14 @@ public class Snubot
         {
             // Create command registry and add commands
             CommandRegistry registry = new CommandRegistry(settings.get(PREFIX));
-            registry.getCommandSet().addAll(Arrays.asList(new HelpCommand(), new LevelCommand(),
-                    new ReactIonRolesCommand(), new SaveAllCommand(), new ModRoleCommand()));
+            registry.getCommandSet().addAll(Arrays.asList(new HelpCommand(), new LevelCommand(), new ReactIonRolesCommand(),
+                    new SaveAllCommand(), new ModRoleCommand(), new LogCommand()));
             // Create managers
             registerManager(new MongoManager(this, settings.get(MONGO_HOST), settings.get(MONGO_DATABASE)));
             registerManager(new CommandManager(this, registry));
             registerManager(new LevelManager(this));
             registerManager(new ReactManager(this));
+            registerManager(new LogManager(this));
             // Load data
             userDataMap.putAll(getMongoManager().fetchUserDataMap());
             guildDataMap.putAll(getMongoManager().fetchGuildDataMap());

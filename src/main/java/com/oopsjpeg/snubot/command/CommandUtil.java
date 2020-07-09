@@ -4,6 +4,7 @@ import com.oopsjpeg.snubot.command.exception.CommandException;
 import com.oopsjpeg.snubot.util.Util;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Role;
+import discord4j.core.object.entity.channel.TextChannel;
 
 public class CommandUtil
 {
@@ -16,6 +17,18 @@ public class CommandUtil
         if (role == null)
             throw new CommandException("Invalid role specified.");
         return role;
+    }
+
+    public static TextChannel tryChannel(Guild g, String s) throws CommandException
+    {
+        TextChannel channel = g.getChannels().ofType(TextChannel.class)
+                .filter(r -> s.equals(r.getId().asString()) // ID
+                        || s.equals(r.getMention()) // Mention
+                        || Util.searchString(r.getName(), s)) // Name
+                .blockFirst();
+        if (channel == null)
+            throw new CommandException("Invalid channel specified.");
+        return channel;
     }
 
     public static int tryInt(String s, String type) throws CommandException

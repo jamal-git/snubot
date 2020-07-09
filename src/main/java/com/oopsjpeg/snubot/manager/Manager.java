@@ -5,7 +5,7 @@ import discord4j.core.GatewayDiscordClient;
 
 public interface Manager
 {
-    Snubot getParent();
-
     default void register(GatewayDiscordClient gateway) {}
+
+    Snubot getParent();
 }

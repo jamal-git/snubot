@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.oopsjpeg.snubot.command.CommandUtil.tryChannel;
 import static com.oopsjpeg.snubot.command.CommandUtil.tryRole;
 
 public class ReactIonRolesCommand implements Command
@@ -62,7 +63,7 @@ public class ReactIonRolesCommand implements Command
                 if (args.length < 3)
                     throw new InvalidUsageException(this, registry, "select <channel> <message id>");
 
-                TextChannel selectedChannel = tryTextChannel(guild, args[1]);
+                TextChannel selectedChannel = tryChannel(guild, args[1]);
                 Message selectedMessage = tryMessage(selectedChannel, args[2]);
 
                 data.getSelections().setMessage(selectedMessage);
@@ -123,18 +124,6 @@ public class ReactIonRolesCommand implements Command
         if (!s.hasMessage())
             throw new CommandException("Select a message first with `" + r.format(this) + " select <channel> <message id>` to edit reaction-based roles.");
         return s.getMessage();
-    }
-
-    private TextChannel tryTextChannel(Guild g, String s) throws CommandException
-    {
-        TextChannel channel = g.getChannels().ofType(TextChannel.class)
-                .filter(c -> s.equals(c.getId().asString()) // ID
-                        || s.equals(c.getMention()) // Mention
-                        || Util.searchString(c.getName(), s)) // Name
-                .blockFirst();
-        if (channel == null)
-            throw new CommandException("Invalid text channel specified.");
-        return channel;
     }
 
     private Message tryMessage(TextChannel c, String s) throws CommandException

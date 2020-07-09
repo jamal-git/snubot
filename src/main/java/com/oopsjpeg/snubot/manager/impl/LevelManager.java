@@ -51,14 +51,14 @@ public class LevelManager implements Manager
     }
 
     @Override
-    public Snubot getParent()
-    {
-        return parent;
-    }
-
-    @Override
     public void register(GatewayDiscordClient gateway)
     {
         gateway.on(MessageCreateEvent.class).subscribe(this::onMessage);
+    }
+
+    @Override
+    public Snubot getParent()
+    {
+        return parent;
     }
 }
