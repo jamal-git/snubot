@@ -43,12 +43,14 @@ public class LogManager implements Manager
         if (!data.hasLogChannel()) return;
 
         TextChannel logChannel = data.getLogChannel().block();
+        if (channel.equals(logChannel)) return;
+
         User author = message.getAuthor().orElse(null);
 
         if (author != null)
-            logChannel.createEmbed(ChatUtil.authorUser(author).andThen(base()).andThen(edit(channel, event.getOld().get(), message))).block();
+            logChannel.createEmbed(ChatUtil.authorUser(author).andThen(edit(channel, event.getOld().get(), message))).block();
         else
-            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(base()).andThen(edit(channel, event.getOld().get(), message))).block();
+            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(edit(channel, event.getOld().get(), message))).block();
     }
 
     public void onMessageDelete(MessageDeleteEvent event)
@@ -65,18 +67,19 @@ public class LogManager implements Manager
         if (!data.hasLogChannel()) return;
 
         TextChannel logChannel = data.getLogChannel().block();
+        if (channel.equals(logChannel)) return;
 
         if (message != null)
         {
             User author = message.getAuthor().orElse(null);
 
             if (author != null)
-                logChannel.createEmbed(ChatUtil.authorUser(author).andThen(base()).andThen(delete(channel, message.getContent()))).block();
+                logChannel.createEmbed(ChatUtil.authorUser(author).andThen(delete(channel, message))).block();
             else
-                logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(base()).andThen(delete(channel, message.getContent()))).block();
+                logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(delete(channel, message))).block();
         }
         else
-            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(base()).andThen(delete(channel, null))).block();
+            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(delete(channel, null))).block();
     }
 
     private Consumer<EmbedCreateSpec> base()
@@ -92,22 +95,23 @@ public class LogManager implements Manager
 
     private Consumer<EmbedCreateSpec> edit(Channel channel, Message old, Message now)
     {
-        return e ->
+        return base().andThen(e ->
         {
             e.setColor(Color.CYAN);
             e.setDescription("**Message edited in " + channel.getMention() + "** ([Jump to Message](" + ChatUtil.url(now) + "))");
             e.addField("Before", old.getContent().isEmpty() ? "None" : old.getContent(), false);
             e.addField("After", now.getContent().isEmpty() ? "None" : now.getContent(), false);
-        };
+        });
     }
 
-    private Consumer<EmbedCreateSpec> delete(Channel channel, String content)
+    private Consumer<EmbedCreateSpec> delete(Channel channel, Message message)
     {
-        return e ->
+        return base().andThen(e ->
         {
+            String content = message != null ? message.getContent() : "None";
             e.setColor(Color.RED);
-            e.setDescription("**Message deleted in " + channel.getMention() + "**\n" + (content != null ? content : ""));
-        };
+            e.setDescription("**Message deleted in " + channel.getMention() + "**\n" + content);
+        });
     }
 
     @Override
