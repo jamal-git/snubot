@@ -5,6 +5,7 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
+import discord4j.rest.util.Image;
 
 import java.util.function.Consumer;
 
@@ -15,24 +16,29 @@ public class ChatUtil
         return u.getUsername() + "#" + u.getDiscriminator();
     }
 
-    public static Consumer<EmbedCreateSpec> user(User user)
+    public static Consumer<EmbedCreateSpec> authorUser(User user)
     {
         return e -> e.setAuthor(user.getUsername() + "#" + user.getDiscriminator(), null, user.getAvatarUrl());
     }
 
+    public static Consumer<EmbedCreateSpec> authorGuild(Guild guild)
+    {
+        return e -> e.setAuthor(guild.getName(), null, guild.getIconUrl(Image.Format.JPEG).orElse(null));
+    }
+
     public static Consumer<EmbedCreateSpec> error(User user, String content)
     {
-        return user(user).andThen(e -> e.setColor(Color.RED).setDescription(":x: " + content));
+        return authorUser(user).andThen(e -> e.setColor(Color.RED).setDescription(":x: " + content));
     }
 
     public static Consumer<EmbedCreateSpec> info(User user, String content)
     {
-        return user(user).andThen(e -> e.setColor(Color.CYAN).setDescription(content));
+        return authorUser(user).andThen(e -> e.setColor(Color.CYAN).setDescription(content));
     }
 
     public static Consumer<EmbedCreateSpec> success(User user, String content)
     {
-        return user(user).andThen(e -> e.setColor(Color.GREEN).setDescription(content));
+        return authorUser(user).andThen(e -> e.setColor(Color.GREEN).setDescription(content));
     }
 
     public static String url(Message message)

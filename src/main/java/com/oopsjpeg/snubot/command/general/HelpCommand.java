@@ -33,7 +33,7 @@ public class HelpCommand implements Command
             int page = search.isEmpty() ? 0 : tryInt(args[0], "page (" + commands.pages() + " page(s))", 1, commands.pages() + 1) - 1;
 
             // Send embed
-            channel.createEmbed(ChatUtil.user(author).andThen(e ->
+            channel.createEmbed(ChatUtil.authorUser(author).andThen(e ->
             {
                 e.setTitle("Commands");
                 e.setDescription(commands.format(page, c -> "`" + c.getAliases()[0] + "`: " + c.getDescription()));
@@ -49,7 +49,7 @@ public class HelpCommand implements Command
                 throw new CommandException("Invalid command name.");
 
             // Send embed
-            channel.createEmbed(ChatUtil.user(author).andThen(e ->
+            channel.createEmbed(ChatUtil.authorUser(author).andThen(e ->
             {
                 e.setTitle(command.getAliases()[0]);
 

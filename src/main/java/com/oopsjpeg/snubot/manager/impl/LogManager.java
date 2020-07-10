@@ -10,7 +10,8 @@ import discord4j.core.event.domain.message.MessageUpdateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.object.entity.channel.Channel;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 
@@ -28,57 +29,85 @@ public class LogManager implements Manager
 
     public void onMessageUpdate(MessageUpdateEvent event)
     {
+        if (!event.isContentChanged()) return;
+
         Message message = event.getMessage().block();
-        MessageChannel channel = message.getChannel().block();
-        User author = message.getAuthor().orElse(null);
+
+        TextChannel channel = event.getChannel().ofType(TextChannel.class).block();
+        if (channel == null) return;
+
         Guild guild = message.getGuild().block();
+        if (guild == null || !parent.hasGuildData(guild)) return;
 
-        if (author != null && guild != null && !author.isBot() && event.isContentChanged() && parent.hasGuildData(guild))
-        {
-            GuildData data = parent.getGuildData(guild);
+        GuildData data = parent.getGuildData(guild);
+        if (!data.hasLogChannel()) return;
 
-            if (data.hasLogChannel())
-                data.getLogChannel().block().createEmbed(format(author).andThen(e ->
-                {
-                    String before = event.getOld().get().getContent();
+        TextChannel logChannel = data.getLogChannel().block();
+        User author = message.getAuthor().orElse(null);
 
-                    e.setColor(Color.CYAN);
-                    e.setDescription("**Message edited in " + channel.getMention() + "** ([Jump to Message](" + ChatUtil.url(message) + "))");
-                    e.addField("Before", before.isEmpty() ? "None" : before, false);
-                    e.addField("After", message.getContent(), false);
-                })).block();
-        }
+        if (author != null)
+            logChannel.createEmbed(ChatUtil.authorUser(author).andThen(base()).andThen(edit(channel, event.getOld().get(), message))).block();
+        else
+            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(base()).andThen(edit(channel, event.getOld().get(), message))).block();
     }
 
     public void onMessageDelete(MessageDeleteEvent event)
     {
-        Message message = event.getMessage().get();
-        MessageChannel channel = message.getChannel().block();
-        User author = message.getAuthor().orElse(null);
-        Guild guild = message.getGuild().block();
+        Message message = event.getMessage().orElse(null);
 
-        if (author != null && guild != null && !author.isBot() && parent.hasGuildData(guild))
+        TextChannel channel = event.getChannel().ofType(TextChannel.class).block();
+        if (channel == null) return;
+
+        Guild guild = channel.getGuild().block();
+        if (guild == null || !parent.hasGuildData(guild)) return;
+
+        GuildData data = parent.getGuildData(guild);
+        if (!data.hasLogChannel()) return;
+
+        TextChannel logChannel = data.getLogChannel().block();
+
+        if (message != null)
         {
-            GuildData data = parent.getGuildData(guild);
+            User author = message.getAuthor().orElse(null);
 
-            if (data.hasLogChannel())
-                data.getLogChannel().block().createEmbed(format(author).andThen(e ->
-                {
-                    e.setColor(Color.RED);
-                    e.setDescription("**Message deleted in " + channel.getMention() + "**\n" + message.getContent());
-                })).block();
+            if (author != null)
+                logChannel.createEmbed(ChatUtil.authorUser(author).andThen(base()).andThen(delete(channel, message.getContent()))).block();
+            else
+                logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(base()).andThen(delete(channel, message.getContent()))).block();
         }
+        else
+            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(base()).andThen(delete(channel, null))).block();
     }
 
-    private Consumer<EmbedCreateSpec> format(User user)
+    private Consumer<EmbedCreateSpec> base()
     {
         LocalDateTime ldt = LocalDateTime.now();
-        return ChatUtil.user(user).andThen(e -> e.setFooter(ldt.getYear() + "/"
+        return e -> e.setFooter(ldt.getYear() + "/"
                     + String.format("%02d", ldt.getMonthValue()) + "/"
                     + String.format("%02d", ldt.getDayOfMonth()) + " "
                     + String.format("%02d", ldt.getHour()) + ":"
                     + String.format("%02d", ldt.getMinute()) + ":"
-                    + String.format("%02d", ldt.getSecond()), null));
+                    + String.format("%02d", ldt.getSecond()), null);
+    }
+
+    private Consumer<EmbedCreateSpec> edit(Channel channel, Message old, Message now)
+    {
+        return e ->
+        {
+            e.setColor(Color.CYAN);
+            e.setDescription("**Message edited in " + channel.getMention() + "** ([Jump to Message](" + ChatUtil.url(now) + "))");
+            e.addField("Before", old.getContent().isEmpty() ? "None" : old.getContent(), false);
+            e.addField("After", now.getContent().isEmpty() ? "None" : now.getContent(), false);
+        };
+    }
+
+    private Consumer<EmbedCreateSpec> delete(Channel channel, String content)
+    {
+        return e ->
+        {
+            e.setColor(Color.RED);
+            e.setDescription("**Message deleted in " + channel.getMention() + "**\n" + (content == null ? content : ""));
+        };
     }
 
     @Override
