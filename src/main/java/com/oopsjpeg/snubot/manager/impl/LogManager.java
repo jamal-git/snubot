@@ -106,7 +106,7 @@ public class LogManager implements Manager
         return e ->
         {
             e.setColor(Color.RED);
-            e.setDescription("**Message deleted in " + channel.getMention() + "**\n" + (content == null ? content : ""));
+            e.setDescription("**Message deleted in " + channel.getMention() + "**\n" + (content != null ? content : ""));
         };
     }
 
