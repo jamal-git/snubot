@@ -1,4 +1,4 @@
-package com.oopsjpeg.snubot.command.general;
+package com.oopsjpeg.snubot.command.impl.general;
 
 import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.command.Command;

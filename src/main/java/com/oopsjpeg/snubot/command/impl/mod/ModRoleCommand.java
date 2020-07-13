@@ -1,4 +1,4 @@
-package com.oopsjpeg.snubot.command.mod;
+package com.oopsjpeg.snubot.command.impl.mod;
 
 import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.command.Command;
@@ -10,15 +10,14 @@ import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 
-public class LogCommand implements Command
+public class ModRoleCommand implements Command
 {
-
     @Override
     public void execute(Message message, String alias, String[] args, CommandRegistry registry, Snubot bot) throws CommandException
     {
@@ -26,49 +25,49 @@ public class LogCommand implements Command
         MessageChannel channel = message.getChannel().block();
         Guild guild = message.getGuild().block();
 
-        // View the current log channel role
+        // View the current moderator role
         if (args.length == 0)
         {
             GuildData data = bot.getGuildData(guild);
-            if (data == null || !data.hasLogChannel())
-                throw new InvalidUsageException(this, registry, "<channel>");
+            if (data == null || !data.hasModRole())
+                throw new InvalidUsageException(this, registry, "<role>");
 
-            channel.createEmbed(ChatUtil.info(author, "The current log channel is **" + data.getLogChannel().block().getName() + "**.")).block();
+            channel.createEmbed(ChatUtil.info(author, "The current moderator role is **" + data.getModRole().block().getName() + "**.")).block();
         }
         // Set the moderator role
         else
         {
-            TextChannel logChannel = CommandUtil.tryChannel(guild, String.join(" ", args));
+            Role role = CommandUtil.tryRole(guild, String.join(" ", args));
 
             GuildData data = bot.getOrAddGuildData(guild);
-            data.setLogChannel(logChannel);
+            data.setModRole(role);
             data.markForSave();
 
-            channel.createEmbed(ChatUtil.success(author, "Set the log channel to **" + logChannel.getName() + "**.")).block();
+            channel.createEmbed(ChatUtil.success(author, "Set the moderator role to **" + role.getName() + "**.")).block();
         }
     }
 
     @Override
     public String[] getAliases()
     {
-        return new String[]{"log"};
+        return new String[]{"modrole"};
     }
 
     @Override
     public String getDescription()
     {
-        return "Set the log channel.";
+        return "Set the moderator role in the current server.";
+    }
+
+    @Override
+    public PermissionSet getPermissions()
+    {
+        return PermissionSet.of(Permission.ADMINISTRATOR);
     }
 
     @Override
     public boolean isGuildOnly()
     {
         return true;
-    }
-
-    @Override
-    public PermissionSet getPermissions()
-    {
-        return PermissionSet.of(Permission.MANAGE_CHANNELS);
     }
 }
