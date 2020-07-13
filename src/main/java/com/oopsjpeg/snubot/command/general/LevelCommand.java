@@ -55,7 +55,7 @@ public class LevelCommand implements Command
 
                 GuildData guildData = bot.getOrAddGuildData(guild);
                 Role role = tryRole(guild, args[1]);
-                int level = tryInt(args[2], "level", 1, guildData.getLeveling().getMaxLevel());
+                int level = tryInt(args[2], "level", 1, guildData.getLeveling().getMaxLevel() + 1);
 
                 guildData.getLeveling().addRole(role, level);
                 guildData.markForSave();
@@ -90,7 +90,7 @@ public class LevelCommand implements Command
 
                 channel.createEmbed(ChatUtil.info(author, guildData.getLeveling().getRoleMap().values().stream()
                         .sorted(Comparator.comparingInt(LevelRole::getLevel))
-                        .map(i -> "Level " + i + ": " + guildData.getLeveling().getRolesForLevel(i.getLevel()).stream()
+                        .map(i -> "Level " + i.getLevel() + ": " + guildData.getLeveling().getRolesForLevel(i.getLevel()).stream()
                                 .map(Role::getName)
                                 .collect(Collectors.joining(", ")))
                         .collect(Collectors.joining("\n")))).block();
@@ -133,7 +133,7 @@ public class LevelCommand implements Command
 
     private void tryEditPerms(TextChannel channel, User user) throws PermissionException
     {
-        if (!Util.hasPermissions(channel, user.getId(), PermissionSet.of(Permission.MANAGE_GUILD)))
+        if (!Util.hasPermissions(channel, user.getId(), PermissionSet.of(Permission.MANAGE_ROLES)))
             throw new PermissionException();
     }
 

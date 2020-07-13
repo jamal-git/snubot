@@ -16,7 +16,8 @@ import java.util.Map;
 public class GuildData extends DiscordData implements ChildData<Snubot>, SaveData
 {
     private final Map<String, MemberData> memberDataMap = new HashMap<>();
-    private final Leveling leveling = new Leveling();
+    private Leveling leveling = new Leveling();
+    private Coloring coloring = new Coloring();
 
     private transient Snubot parent;
     private transient boolean markedForSave;
@@ -115,6 +116,13 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
     public Leveling getLeveling()
     {
         return (Leveling) leveling.parent(this);
+    }
+
+    public Coloring getColoring()
+    {
+        if (coloring == null)
+            coloring = new Coloring();
+        return (Coloring) coloring.parent(this);
     }
 
     public String getModRoleId()

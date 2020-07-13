@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.oopsjpeg.snubot.command.CommandManager;
 import com.oopsjpeg.snubot.command.CommandRegistry;
 import com.oopsjpeg.snubot.command.dev.SaveAllCommand;
+import com.oopsjpeg.snubot.command.general.ColorCommand;
 import com.oopsjpeg.snubot.command.general.HelpCommand;
 import com.oopsjpeg.snubot.command.general.LevelCommand;
 import com.oopsjpeg.snubot.command.mod.LogCommand;
@@ -84,7 +85,7 @@ public class Snubot
             // Create command registry and add commands
             CommandRegistry registry = new CommandRegistry(settings.get(PREFIX));
             registry.getCommandSet().addAll(Arrays.asList(new HelpCommand(), new LevelCommand(), new ReactIonRolesCommand(),
-                    new SaveAllCommand(), new ModRoleCommand(), new LogCommand()));
+                    new SaveAllCommand(), new ModRoleCommand(), new LogCommand(), new ColorCommand()));
             // Create managers
             registerManager(new MongoManager(this, settings.get(MONGO_HOST), settings.get(MONGO_DATABASE)));
             registerManager(new CommandManager(this, registry));

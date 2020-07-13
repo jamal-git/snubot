@@ -46,6 +46,7 @@ public class LogManager implements Manager
         if (channel.equals(logChannel)) return;
 
         User author = message.getAuthor().orElse(null);
+        if (author != null && author.isBot()) return;
 
         if (author != null)
             logChannel.createEmbed(ChatUtil.authorUser(author).andThen(edit(channel, event.getOld().get(), message))).block();
@@ -56,6 +57,7 @@ public class LogManager implements Manager
     public void onMessageDelete(MessageDeleteEvent event)
     {
         Message message = event.getMessage().orElse(null);
+        if (message == null) return;
 
         TextChannel channel = event.getChannel().ofType(TextChannel.class).block();
         if (channel == null) return;
@@ -69,17 +71,13 @@ public class LogManager implements Manager
         TextChannel logChannel = data.getLogChannel().block();
         if (channel.equals(logChannel)) return;
 
-        if (message != null)
-        {
-            User author = message.getAuthor().orElse(null);
+        User author = message.getAuthor().orElse(null);
+        if (author != null && author.isBot()) return;
 
-            if (author != null)
-                logChannel.createEmbed(ChatUtil.authorUser(author).andThen(delete(channel, message))).block();
-            else
-                logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(delete(channel, message))).block();
-        }
+        if (author != null)
+            logChannel.createEmbed(ChatUtil.authorUser(author).andThen(delete(channel, message))).block();
         else
-            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(delete(channel, null))).block();
+            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(delete(channel, message))).block();
     }
 
     private Consumer<EmbedCreateSpec> base()

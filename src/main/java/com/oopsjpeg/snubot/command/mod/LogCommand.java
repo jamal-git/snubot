@@ -13,6 +13,8 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.rest.util.Permission;
+import discord4j.rest.util.PermissionSet;
 
 public class LogCommand implements Command
 {
@@ -50,5 +52,23 @@ public class LogCommand implements Command
     public String[] getAliases()
     {
         return new String[]{"log"};
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "Set the log channel.";
+    }
+
+    @Override
+    public boolean isGuildOnly()
+    {
+        return true;
+    }
+
+    @Override
+    public PermissionSet getPermissions()
+    {
+        return PermissionSet.of(Permission.MANAGE_CHANNELS);
     }
 }

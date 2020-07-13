@@ -27,6 +27,7 @@ public class Leveling implements ChildData<GuildData>
     public List<Role> getRolesForLevel(int level)
     {
         return roleMap.values().stream()
+                .map(r -> (LevelRole) r.parent(this))
                 .filter(r -> r.getLevel() == level)
                 .map(r -> r.getRole().block())
                 .collect(Collectors.toList());
