@@ -5,13 +5,21 @@ import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.rest.util.PermissionSet;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Util
 {
+    private static final NumberFormat COMMA = NumberFormat.getNumberInstance(Locale.US);
     private static final String CUSTOM_EMOJI_FORMAT = "<:%s:%s>";
+
+    static
+    {
+        COMMA.setMaximumFractionDigits(0);
+    }
 
     public static String emojiToString(ReactionEmoji emoji)
     {
@@ -75,5 +83,28 @@ public class Util
     public static boolean hasPermissions(TextChannel channel, Snowflake userId, PermissionSet permissionSet)
     {
         return channel.getEffectivePermissions(userId).block().containsAll(permissionSet);
+    }
+
+    public static String timeDiff(LocalDateTime date1, LocalDateTime date2) {
+        Duration duration = Duration.between(date1, date2);
+        Stack<String> stack = new Stack<>();
+
+        if (duration.toDays() > 0) stack.push(duration.toDays() + "d");
+        duration = duration.minusDays(duration.toDays());
+
+        if (duration.toHours() > 0) stack.push(duration.toHours() + "h");
+        duration = duration.minusHours(duration.toHours());
+
+        if (duration.toMinutes() > 0) stack.push(duration.toMinutes() + "m");
+        duration = duration.minusMinutes(duration.toMinutes());
+
+        if (duration.getSeconds() > 0) stack.push(duration.getSeconds() + "s");
+
+        return stack.stream().limit(3).collect(Collectors.joining(" "));
+    }
+
+    public static String comma(Number number)
+    {
+        return COMMA.format(number);
     }
 }

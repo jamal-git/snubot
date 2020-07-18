@@ -1,8 +1,8 @@
-package com.oopsjpeg.snubot.manager.impl;
+package com.oopsjpeg.snubot.manager;
 
+import com.oopsjpeg.snubot.Manager;
 import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.data.impl.GuildData;
-import com.oopsjpeg.snubot.manager.Manager;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageDeleteEvent;
@@ -40,18 +40,18 @@ public class LogManager implements Manager
         if (guild == null || !parent.hasGuildData(guild)) return;
 
         GuildData data = parent.getGuildData(guild);
-        if (!data.hasLogChannel()) return;
+        if (!data.getLogging().hasChannel()) return;
 
-        TextChannel logChannel = data.getLogChannel().block();
+        TextChannel logChannel = data.getLogging().getChannel().block();
         if (channel.equals(logChannel)) return;
 
         User author = message.getAuthor().orElse(null);
         if (author != null && author.isBot()) return;
 
         if (author != null)
-            logChannel.createEmbed(ChatUtil.authorUser(author).andThen(edit(channel, event.getOld().get(), message))).block();
+            logChannel.createEmbed(ChatUtil.authorUser(author).andThen(edit(channel, event.getOld().orElse(null), message))).block();
         else
-            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(edit(channel, event.getOld().get(), message))).block();
+            logChannel.createEmbed(ChatUtil.authorGuild(guild).andThen(edit(channel, event.getOld().orElse(null), message))).block();
     }
 
     public void onMessageDelete(MessageDeleteEvent event)
@@ -66,9 +66,9 @@ public class LogManager implements Manager
         if (guild == null || !parent.hasGuildData(guild)) return;
 
         GuildData data = parent.getGuildData(guild);
-        if (!data.hasLogChannel()) return;
+        if (!data.getLogging().hasChannel()) return;
 
-        TextChannel logChannel = data.getLogChannel().block();
+        TextChannel logChannel = data.getLogging().getChannel().block();
         if (channel.equals(logChannel)) return;
 
         User author = message.getAuthor().orElse(null);
@@ -84,11 +84,11 @@ public class LogManager implements Manager
     {
         LocalDateTime ldt = LocalDateTime.now();
         return e -> e.setFooter(ldt.getYear() + "/"
-                    + String.format("%02d", ldt.getMonthValue()) + "/"
-                    + String.format("%02d", ldt.getDayOfMonth()) + " "
-                    + String.format("%02d", ldt.getHour()) + ":"
-                    + String.format("%02d", ldt.getMinute()) + ":"
-                    + String.format("%02d", ldt.getSecond()), null);
+                + String.format("%02d", ldt.getMonthValue()) + "/"
+                + String.format("%02d", ldt.getDayOfMonth()) + " "
+                + String.format("%02d", ldt.getHour()) + ":"
+                + String.format("%02d", ldt.getMinute()) + ":"
+                + String.format("%02d", ldt.getSecond()), null);
     }
 
     private Consumer<EmbedCreateSpec> edit(Channel channel, Message old, Message now)
@@ -97,8 +97,8 @@ public class LogManager implements Manager
         {
             e.setColor(Color.CYAN);
             e.setDescription("**Message edited in " + channel.getMention() + "** ([Jump to Message](" + ChatUtil.url(now) + "))");
-            e.addField("Before", old.getContent().isEmpty() ? "None" : old.getContent(), false);
-            e.addField("After", now.getContent().isEmpty() ? "None" : now.getContent(), false);
+            e.addField("Before", old == null || old.getContent().isEmpty() ? "None" : old.getContent(), false);
+            e.addField("After", now.getContent(), false);
         });
     }
 

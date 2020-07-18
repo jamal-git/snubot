@@ -1,9 +1,11 @@
 package com.oopsjpeg.snubot.data.impl;
 
-import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.data.ChildData;
 import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.SaveData;
+import com.oopsjpeg.snubot.Snubot;
+import discord4j.core.object.entity.User;
+import reactor.core.publisher.Mono;
 
 public class UserData extends DiscordData implements ChildData<Snubot>, SaveData
 {
@@ -15,6 +17,11 @@ public class UserData extends DiscordData implements ChildData<Snubot>, SaveData
     public UserData(final String id)
     {
         super(id);
+    }
+
+    public Mono<User> discord()
+    {
+        return parent.getGateway().getUserById(getIdAsSnowflake());
     }
 
     public Selections getSelections()

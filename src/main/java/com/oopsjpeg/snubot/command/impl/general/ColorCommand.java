@@ -1,15 +1,16 @@
 package com.oopsjpeg.snubot.command.impl.general;
 
-import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.command.Command;
-import com.oopsjpeg.snubot.command.CommandRegistry;
-import com.oopsjpeg.snubot.command.exception.CommandException;
-import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
-import com.oopsjpeg.snubot.command.exception.PermissionException;
 import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.data.impl.MemberData;
 import com.oopsjpeg.snubot.util.ChatUtil;
+import com.oopsjpeg.snubot.command.CommandRegistry;
+import com.oopsjpeg.snubot.command.CommandUtil;
 import com.oopsjpeg.snubot.util.Util;
+import com.oopsjpeg.snubot.command.exception.CommandException;
+import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
+import com.oopsjpeg.snubot.command.exception.PermissionException;
+import com.oopsjpeg.snubot.Snubot;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.Role;
@@ -19,9 +20,6 @@ import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 
 import java.util.stream.Collectors;
-
-import static com.oopsjpeg.snubot.command.CommandUtil.tryInt;
-import static com.oopsjpeg.snubot.command.CommandUtil.tryRole;
 
 public class ColorCommand implements Command
 {
@@ -48,7 +46,7 @@ public class ColorCommand implements Command
             if (args.length < 2)
                 throw new InvalidUsageException(this, registry, "add <role>");
 
-            Role role = tryRole(guild, args[1]);
+            Role role = CommandUtil.tryRole(guild, args[1]);
             if (data.getColoring().hasRole(role))
                 throw new CommandException("That role is already added.");
 
@@ -64,7 +62,7 @@ public class ColorCommand implements Command
             if (args.length < 2)
                 throw new InvalidUsageException(this, registry, "remove <role>");
 
-            Role role = tryRole(guild, args[1]);
+            Role role = CommandUtil.tryRole(guild, args[1]);
             if (!data.getColoring().hasRole(role))
                 throw new CommandException("That role is not added.");
 
@@ -94,7 +92,7 @@ public class ColorCommand implements Command
             }
             else
             {
-                int level = args[1].equalsIgnoreCase("none") ? 0 : tryInt(args[1], "level", 1, 999) - 1;
+                int level = args[1].equalsIgnoreCase("none") ? 0 : CommandUtil.tryInt(args[1], "level", 1, 999) - 1;
 
                 data.getColoring().setLevelRequired(level);
                 data.markForSave();

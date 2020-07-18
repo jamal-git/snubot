@@ -2,12 +2,10 @@ package com.oopsjpeg.snubot.command;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
-public class CommandRegistry
+public class CommandRegistry extends HashSet<Command>
 {
     private final String prefix;
-    private final Set<Command> commandSet = new HashSet<>();
 
     public CommandRegistry(final String prefix)
     {
@@ -16,7 +14,7 @@ public class CommandRegistry
 
     public Command find(String alias)
     {
-        return commandSet.stream()
+        return stream()
                 .filter(c -> Arrays.stream(c.getAliases())
                         .anyMatch(a -> a.equalsIgnoreCase(alias)))
                 .findAny().orElse(null);
@@ -30,10 +28,5 @@ public class CommandRegistry
     public String getPrefix()
     {
         return prefix;
-    }
-
-    public Set<Command> getCommandSet()
-    {
-        return commandSet;
     }
 }

@@ -112,6 +112,16 @@ public class Leveling implements ChildData<GuildData>
         }
     }
 
+    public void syncRoles(Snowflake id)
+    {
+        syncRoles(parent.getParent().getGateway().getUserById(id).block());
+    }
+
+    public void syncRoles(String id)
+    {
+        syncRoles(Snowflake.of(id));
+    }
+
     public int getMaxLevel()
     {
         return maxLevel;

@@ -5,21 +5,18 @@ import com.google.gson.GsonBuilder;
 import com.oopsjpeg.snubot.command.CommandManager;
 import com.oopsjpeg.snubot.command.CommandRegistry;
 import com.oopsjpeg.snubot.command.impl.dev.SaveAllCommand;
-import com.oopsjpeg.snubot.command.impl.general.ColorCommand;
-import com.oopsjpeg.snubot.command.impl.general.HelpCommand;
-import com.oopsjpeg.snubot.command.impl.general.LevelCommand;
+import com.oopsjpeg.snubot.command.impl.general.*;
 import com.oopsjpeg.snubot.command.impl.mod.LogCommand;
 import com.oopsjpeg.snubot.command.impl.mod.ModRoleCommand;
 import com.oopsjpeg.snubot.command.impl.mod.ReactIonRolesCommand;
-import com.oopsjpeg.snubot.data.SaveData;
 import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.data.impl.UserData;
-import com.oopsjpeg.snubot.manager.Manager;
-import com.oopsjpeg.snubot.manager.impl.LevelManager;
-import com.oopsjpeg.snubot.manager.impl.LogManager;
-import com.oopsjpeg.snubot.manager.impl.MongoManager;
+import com.oopsjpeg.snubot.manager.LevelManager;
+import com.oopsjpeg.snubot.manager.LogManager;
+import com.oopsjpeg.snubot.manager.MongoManager;
 import com.oopsjpeg.snubot.react.ReactManager;
 import com.oopsjpeg.snubot.util.BadSettingsException;
+import com.oopsjpeg.snubot.data.SaveData;
 import com.oopsjpeg.snubot.util.Settings;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
@@ -49,12 +46,12 @@ public class Snubot
 
     private static Snubot instance;
 
+    private Settings settings;
+    private GatewayDiscordClient gateway;
+
     private final List<Manager> managerList = new ArrayList<>();
     private final Map<String, UserData> userDataMap = new HashMap<>();
     private final Map<String, GuildData> guildDataMap = new HashMap<>();
-
-    private Settings settings;
-    private GatewayDiscordClient gateway;
 
     public static void main(String[] args) throws IOException, BadSettingsException
     {
@@ -62,37 +59,41 @@ public class Snubot
         instance.start();
     }
 
-    public static File getSettingsFile()
+    public static Snubot getInstance()
     {
-        return new File("snubot.properties");
+       return instance;
     }
 
-    //public static Snubot getInstance()
-    //{
-    //    return instance;
-    //}
+    public static String getSettingsFile()
+    {
+        return "snubot.properties";
+    }
 
-    private void start() throws IOException, BadSettingsException
+    public void start() throws IOException, BadSettingsException
     {
         loadSettings();
 
         // Create client and log in
-        DiscordClient client = DiscordClient.create(settings.get(TOKEN));
+        DiscordClient client = DiscordClient.create(settings.get(Settings.TOKEN));
         gateway = client.login().block();
-        // Set up ready event actions
-        gateway.on(ReadyEvent.class).subscribe(e ->
+        // Handle ready event
+        gateway.on(ReadyEvent.class).subscribe(event ->
         {
-            // Create command registry and add commands
             CommandRegistry registry = new CommandRegistry(settings.get(PREFIX));
-            registry.getCommandSet().addAll(Arrays.asList(new HelpCommand(), new LevelCommand(), new ReactIonRolesCommand(),
-                    new SaveAllCommand(), new ModRoleCommand(), new LogCommand(), new ColorCommand()));
-            // Create managers
-            registerManager(new MongoManager(this, settings.get(MONGO_HOST), settings.get(MONGO_DATABASE)));
-            registerManager(new CommandManager(this, registry));
-            registerManager(new LevelManager(this));
-            registerManager(new ReactManager(this));
-            registerManager(new LogManager(this));
-            // Load data
+            registry.addAll(Arrays.asList(new HelpCommand(), new LevelCommand(), new ReactIonRolesCommand(),
+                    new SaveAllCommand(), new ModRoleCommand(), new LogCommand(), new ColorCommand(),
+                    new ProfileCommand(), new DailyCommand()));
+
+            addManager(new MongoManager(this, settings.get(MONGO_HOST), settings.get(MONGO_DATABASE)));
+            addManager(new LogManager(this));
+            addManager(new LevelManager(this));
+            addManager(new ReactManager(this));
+
+            // Create command registry
+            managerList.add(new CommandManager(this, registry));
+            // Register managers
+            managerList.forEach(m -> m.register(gateway));
+
             userDataMap.putAll(getMongoManager().fetchUserDataMap());
             guildDataMap.putAll(getMongoManager().fetchGuildDataMap());
             getReactManager().getMessageMap().putAll(getMongoManager().fetchReactMessageMap());
@@ -102,27 +103,34 @@ public class Snubot
             // Save data on shut down
             Runtime.getRuntime().addShutdownHook(new Thread(this::saveAll));
 
-            LOGGER.info("Logged in as " + e.getSelf().getUsername() + ".");
+            LOGGER.info("Logged in as " + event.getSelf().getUsername() + ".");
         });
         // Handle disconnects
         gateway.onDisconnect().block();
     }
 
+    public Settings getSettings()
+    {
+        return settings;
+    }
+
     private void loadSettings() throws IOException, BadSettingsException
     {
-        Snubot.LOGGER.info("Loading settings.");
+        LOGGER.info("Loading settings.");
         settings = new Settings();
+        File file = new File(getSettingsFile());
+
         // Store new settings if it doesn't exist
-        if (!getSettingsFile().exists())
+        if (!file.exists())
         {
-            try (FileWriter fw = new FileWriter(getSettingsFile()))
+            try (FileWriter fw = new FileWriter(file))
             {
                 settings.store(fw);
-                throw new BadSettingsException("Created new settings file (" + getSettingsFile().getName() + ")");
+                throw new BadSettingsException("Created new settings file (" + file.getName() + ")");
             }
         }
         // Load settings
-        try (FileReader fr = new FileReader(getSettingsFile()))
+        try (FileReader fr = new FileReader(file))
         {
             settings.load(fr);
             // Validate each setting
@@ -140,6 +148,11 @@ public class Snubot
         getReactManager().getMessageMap().values().stream().filter(SaveData::isMarkedForSave).forEach(getMongoManager()::saveReactMessage);
     }
 
+    public GatewayDiscordClient getGateway()
+    {
+        return gateway;
+    }
+
     public List<Manager> getManagerList()
     {
         return managerList;
@@ -150,20 +163,24 @@ public class Snubot
         return (T) managerList.stream().filter(m -> m.getClass().equals(clazz)).findAny().orElse(null);
     }
 
-    public void registerManager(Manager manager)
+    public void addManager(Manager manager)
     {
         managerList.add(manager);
-        manager.register(gateway);
-    }
-
-    public MongoManager getMongoManager()
-    {
-        return getManager(MongoManager.class);
     }
 
     public CommandManager getCommandManager()
     {
         return getManager(CommandManager.class);
+    }
+
+    public CommandRegistry getCommandRegistry()
+    {
+        return getCommandManager().getRegistry();
+    }
+
+    public MongoManager getMongoManager()
+    {
+        return getManager(MongoManager.class);
     }
 
     public LevelManager getLevelManager()
@@ -340,15 +357,5 @@ public class Snubot
     public GuildData getOrAddGuildData(Guild guild)
     {
         return getOrAddGuildData(guild.getId());
-    }
-
-    public Settings getSettings()
-    {
-        return settings;
-    }
-
-    public GatewayDiscordClient getGateway()
-    {
-        return gateway;
     }
 }

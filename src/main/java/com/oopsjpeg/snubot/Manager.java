@@ -1,6 +1,5 @@
-package com.oopsjpeg.snubot.manager;
+package com.oopsjpeg.snubot;
 
-import com.oopsjpeg.snubot.Snubot;
 import discord4j.core.GatewayDiscordClient;
 
 public interface Manager

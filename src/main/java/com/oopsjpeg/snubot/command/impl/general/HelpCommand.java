@@ -1,20 +1,19 @@
 package com.oopsjpeg.snubot.command.impl.general;
 
-import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.command.Command;
 import com.oopsjpeg.snubot.command.CommandRegistry;
-import com.oopsjpeg.snubot.command.exception.CommandException;
+import com.oopsjpeg.snubot.command.CommandUtil;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import com.oopsjpeg.snubot.util.PagedList;
 import com.oopsjpeg.snubot.util.Util;
+import com.oopsjpeg.snubot.Snubot;
+import com.oopsjpeg.snubot.command.exception.CommandException;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
-import static com.oopsjpeg.snubot.command.CommandUtil.tryInt;
 
 public class HelpCommand implements Command
 {
@@ -29,8 +28,8 @@ public class HelpCommand implements Command
         if (search.isEmpty() || Util.isDigits(search))
         {
             // Create a paged list of commands
-            PagedList<Command> commands = new PagedList<>(registry.getCommandSet(), 15);
-            int page = search.isEmpty() ? 0 : tryInt(args[0], "page (" + commands.pages() + " page(s))", 1, commands.pages() + 1) - 1;
+            PagedList<Command> commands = new PagedList<>(registry, 15);
+            int page = search.isEmpty() ? 0 : CommandUtil.tryInt(args[0], "page (" + commands.pages() + " page(s))", 1, commands.pages() + 1) - 1;
 
             // Send embed
             channel.createEmbed(ChatUtil.authorUser(author).andThen(e ->

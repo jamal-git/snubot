@@ -18,7 +18,6 @@ import discord4j.rest.util.PermissionSet;
 
 public class LogCommand implements Command
 {
-
     @Override
     public void execute(Message message, String alias, String[] args, CommandRegistry registry, Snubot bot) throws CommandException
     {
@@ -30,10 +29,10 @@ public class LogCommand implements Command
         if (args.length == 0)
         {
             GuildData data = bot.getGuildData(guild);
-            if (data == null || !data.hasLogChannel())
+            if (data == null || !data.getLogging().hasChannel())
                 throw new InvalidUsageException(this, registry, "<channel>");
 
-            channel.createEmbed(ChatUtil.info(author, "The current log channel is **" + data.getLogChannel().block().getName() + "**.")).block();
+            channel.createEmbed(ChatUtil.info(author, "The current log channel is **" + data.getLogging().getChannel().block().getName() + "**.")).block();
         }
         // Set the moderator role
         else
@@ -41,7 +40,7 @@ public class LogCommand implements Command
             TextChannel logChannel = CommandUtil.tryChannel(guild, String.join(" ", args));
 
             GuildData data = bot.getOrAddGuildData(guild);
-            data.setLogChannel(logChannel);
+            data.getLogging().setChannel(logChannel);
             data.markForSave();
 
             channel.createEmbed(ChatUtil.success(author, "Set the log channel to **" + logChannel.getName() + "**.")).block();

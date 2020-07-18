@@ -1,17 +1,18 @@
 package com.oopsjpeg.snubot.command.impl.mod;
 
-import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.command.Command;
+import com.oopsjpeg.snubot.util.ChatUtil;
 import com.oopsjpeg.snubot.command.CommandRegistry;
+import com.oopsjpeg.snubot.command.CommandUtil;
+import com.oopsjpeg.snubot.util.Util;
 import com.oopsjpeg.snubot.command.exception.CommandException;
 import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
+import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.data.impl.Selections;
 import com.oopsjpeg.snubot.data.impl.UserData;
 import com.oopsjpeg.snubot.react.ReactManager;
 import com.oopsjpeg.snubot.react.ReactMessage;
 import com.oopsjpeg.snubot.react.ReactRole;
-import com.oopsjpeg.snubot.util.ChatUtil;
-import com.oopsjpeg.snubot.util.Util;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Guild;
@@ -26,9 +27,6 @@ import discord4j.rest.util.PermissionSet;
 import reactor.core.publisher.Mono;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.oopsjpeg.snubot.command.CommandUtil.tryChannel;
-import static com.oopsjpeg.snubot.command.CommandUtil.tryRole;
 
 public class ReactIonRolesCommand implements Command
 {
@@ -63,7 +61,7 @@ public class ReactIonRolesCommand implements Command
                 if (args.length < 3)
                     throw new InvalidUsageException(this, registry, "select <channel> <message id>");
 
-                TextChannel selectedChannel = tryChannel(guild, args[1]);
+                TextChannel selectedChannel = CommandUtil.tryChannel(guild, args[1]);
                 Message selectedMessage = tryMessage(selectedChannel, args[2]);
 
                 data.getSelections().setMessage(selectedMessage);
@@ -78,7 +76,7 @@ public class ReactIonRolesCommand implements Command
                     throw new InvalidUsageException(this, registry, "add <role> <emoji> [mode]");
 
                 Message selectedMessage = trySelectedMessage(data.getSelections(), registry, bot.getGateway()).block();
-                Role role = tryRole(guild, args[1]);
+                Role role = CommandUtil.tryRole(guild, args[1]);
                 ReactionEmoji emoji = Util.stringToEmoji(args[2]);
 
                 // Test if the emoji is real by reacting
@@ -108,7 +106,7 @@ public class ReactIonRolesCommand implements Command
 
                 Message selectedMessage = trySelectedMessage(data.getSelections(), registry, bot.getGateway()).block();
                 ReactMessage reactMessage = tryReactMessage(manager, message);
-                Role role = tryRole(guild, args[1]);
+                Role role = CommandUtil.tryRole(guild, args[1]);
 
                 manager.removeRole(reactMessage, role);
                 reactMessage.markForSave();

@@ -1,14 +1,14 @@
-package com.oopsjpeg.snubot.manager.impl;
+package com.oopsjpeg.snubot.manager;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
+import com.oopsjpeg.snubot.Manager;
 import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.data.impl.UserData;
-import com.oopsjpeg.snubot.manager.Manager;
 import com.oopsjpeg.snubot.react.ReactMessage;
 import org.bson.Document;
 

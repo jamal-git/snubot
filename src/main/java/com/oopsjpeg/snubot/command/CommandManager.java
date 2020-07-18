@@ -1,19 +1,15 @@
 package com.oopsjpeg.snubot.command;
 
+import com.oopsjpeg.snubot.Manager;
 import com.oopsjpeg.snubot.Snubot;
-import com.oopsjpeg.snubot.command.exception.*;
-import com.oopsjpeg.snubot.data.impl.GuildData;
-import com.oopsjpeg.snubot.manager.Manager;
+import com.oopsjpeg.snubot.command.exception.CommandException;
 import com.oopsjpeg.snubot.util.ChatUtil;
 import com.oopsjpeg.snubot.util.Util;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.core.object.entity.channel.TextChannel;
 
 public class CommandManager implements Manager
 {
@@ -47,34 +43,7 @@ public class CommandManager implements Manager
             {
                 try
                 {
-                    // Check if command is developer only
-                    if (command.isDeveloperOnly() && !author.getId().equals(client.getApplicationInfo().block().getOwnerId()))
-                        throw new DeveloperOnlyException();
-                    // Check if command is guild only
-                    if (command.isGuildOnly())
-                    {
-                        if (!(channel instanceof TextChannel))
-                            throw new GuildOnlyException();
-
-                        TextChannel textChannel = (TextChannel) channel;
-                        Guild guild = textChannel.getGuild().block();
-
-                        // Check if command is moderator only
-                        if (command.isModOnly() && getParent().hasGuildData(guild))
-                        {
-                            GuildData data = getParent().getGuildData(guild);
-                            Member member = guild.getMemberById(author.getId()).block();
-
-                            if (!data.hasModRole() || !member.getRoleIds().contains(data.getModRoleIdAsSnowflake()))
-                                throw new ModOnlyException();
-                        }
-
-                        // Check user permissions
-                        if (command.hasPermissions() && !Util.hasPermissions(textChannel, author.getId(), command.getPermissions()))
-                            throw new PermissionException();
-                    }
-
-                    command.execute(message, alias, args, registry, parent);
+                    command.tryExecute(message, alias, args, registry, parent);
                 }
                 catch (CommandException error)
                 {
@@ -87,6 +56,11 @@ public class CommandManager implements Manager
                 }
             }
         }
+    }
+
+    public CommandRegistry getRegistry()
+    {
+        return registry;
     }
 
     @Override

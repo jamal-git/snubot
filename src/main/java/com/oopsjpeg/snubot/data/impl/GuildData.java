@@ -5,9 +5,9 @@ import com.oopsjpeg.snubot.data.ChildData;
 import com.oopsjpeg.snubot.data.DiscordData;
 import com.oopsjpeg.snubot.data.SaveData;
 import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.TextChannel;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
@@ -18,6 +18,7 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
     private final Map<String, MemberData> memberDataMap = new HashMap<>();
     private Leveling leveling = new Leveling();
     private Coloring coloring = new Coloring();
+    private Logging logging = new Logging();
 
     private transient Snubot parent;
     private transient boolean markedForSave;
@@ -28,6 +29,11 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
     public GuildData(final String id)
     {
         super(id);
+    }
+
+    public Mono<Guild> discord()
+    {
+        return parent.getGateway().getGuildById(getIdAsSnowflake());
     }
 
     public Map<String, MemberData> getMemberDataMap()
@@ -115,6 +121,8 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
 
     public Leveling getLeveling()
     {
+        if (leveling == null)
+            leveling = new Leveling();
         return (Leveling) leveling.parent(this);
     }
 
@@ -125,6 +133,13 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
         return (Coloring) coloring.parent(this);
     }
 
+    public Logging getLogging()
+    {
+        if (logging == null)
+            logging = new Logging();
+        return (Logging) logging.parent(this);
+    }
+
     public String getModRoleId()
     {
         return modRoleId;
@@ -132,7 +147,7 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
 
     public Snowflake getModRoleIdAsSnowflake()
     {
-        return Snowflake.of(modRoleId);
+        return Snowflake.of(getModRoleId());
     }
 
     public Mono<Role> getModRole()
@@ -150,49 +165,14 @@ public class GuildData extends DiscordData implements ChildData<Snubot>, SaveDat
         setModRoleId(modRoleId.asString());
     }
 
-    public void setModRole(Role role)
+    public void setModRole(Role modRole)
     {
-        setModRoleId(role.getId());
+        setModRoleId(modRole.getId());
     }
 
     public boolean hasModRole()
     {
-        return modRoleId != null;
-    }
-
-    public String getLogChannelId()
-    {
-        return logChannelId;
-    }
-
-    public Snowflake getLogChannelIdAsSnowflake()
-    {
-        return Snowflake.of(logChannelId);
-    }
-
-    public Mono<TextChannel> getLogChannel()
-    {
-        return parent.getGateway().getChannelById(getLogChannelIdAsSnowflake()).cast(TextChannel.class);
-    }
-
-    public void setLogChannelId(String logChannelId)
-    {
-        this.logChannelId = logChannelId;
-    }
-
-    public void setLogChannelId(Snowflake logChannelId)
-    {
-        setLogChannelId(logChannelId.asString());
-    }
-
-    public void setLogChannel(TextChannel channel)
-    {
-        setLogChannelId(channel.getId());
-    }
-
-    public boolean hasLogChannel()
-    {
-        return logChannelId != null;
+        return getModRoleId() != null;
     }
 
     @Override

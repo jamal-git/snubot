@@ -1,7 +1,7 @@
 package com.oopsjpeg.snubot.react;
 
+import com.oopsjpeg.snubot.Manager;
 import com.oopsjpeg.snubot.Snubot;
-import com.oopsjpeg.snubot.manager.Manager;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.ReactionAddEvent;

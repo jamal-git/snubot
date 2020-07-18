@@ -1,16 +1,18 @@
 package com.oopsjpeg.snubot.command.impl.general;
 
-import com.oopsjpeg.snubot.Snubot;
 import com.oopsjpeg.snubot.command.Command;
-import com.oopsjpeg.snubot.command.CommandRegistry;
-import com.oopsjpeg.snubot.command.exception.CommandException;
-import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
-import com.oopsjpeg.snubot.command.exception.PermissionException;
 import com.oopsjpeg.snubot.data.impl.GuildData;
 import com.oopsjpeg.snubot.data.impl.LevelRole;
 import com.oopsjpeg.snubot.data.impl.MemberData;
 import com.oopsjpeg.snubot.util.ChatUtil;
+import com.oopsjpeg.snubot.command.CommandRegistry;
+import com.oopsjpeg.snubot.command.CommandUtil;
 import com.oopsjpeg.snubot.util.Util;
+import com.oopsjpeg.snubot.command.exception.CommandException;
+import com.oopsjpeg.snubot.command.exception.InvalidUsageException;
+import com.oopsjpeg.snubot.command.exception.PermissionException;
+import com.oopsjpeg.snubot.Snubot;
+import com.oopsjpeg.snubot.util.Embeds;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.Role;
@@ -21,9 +23,6 @@ import discord4j.rest.util.PermissionSet;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
-
-import static com.oopsjpeg.snubot.command.CommandUtil.tryInt;
-import static com.oopsjpeg.snubot.command.CommandUtil.tryRole;
 
 public class LevelCommand implements Command
 {
@@ -37,10 +36,8 @@ public class LevelCommand implements Command
         // Show level in the current server
         if (args.length == 0)
         {
-            GuildData guildData = bot.getOrAddGuildData(guild);
-            MemberData memberData = guildData.getOrAddMemberData(author);
-
-            channel.createEmbed(ChatUtil.info(author, "Level **" + (memberData.getLevel() + 1) + "** (" + memberData.getXp() + " / " + memberData.getMaxXp() + ")")).block();
+            MemberData data = bot.getOrAddGuildData(guild).getOrAddMemberData(author);
+            channel.createEmbed(Embeds.profile(data)).block();
         }
         // Perform a level command
         else
@@ -54,8 +51,8 @@ public class LevelCommand implements Command
                     throw new InvalidUsageException(this, registry, "addrole <role> <level>");
 
                 GuildData guildData = bot.getOrAddGuildData(guild);
-                Role role = tryRole(guild, args[1]);
-                int level = tryInt(args[2], "level", 1, guildData.getLeveling().getMaxLevel() + 1);
+                Role role = CommandUtil.tryRole(guild, args[1]);
+                int level = CommandUtil.tryInt(args[2], "level", 1, guildData.getLeveling().getMaxLevel() + 1);
 
                 guildData.getLeveling().addRole(role, level);
                 guildData.markForSave();
@@ -72,7 +69,7 @@ public class LevelCommand implements Command
 
                 GuildData guildData = bot.getOrAddGuildData(guild);
                 tryRolesNotEmpty(guild, guildData);
-                Role role = tryRole(guild, args[1]);
+                Role role = CommandUtil.tryRole(guild, args[1]);
 
                 if (!guildData.getLeveling().hasRole(role))
                     throw new CommandException("**" + role.getName() + "** is not set to any level.");
@@ -117,7 +114,7 @@ public class LevelCommand implements Command
                 }
                 else
                 {
-                    int max = tryInt(args[1], "maximum", 1, 999);
+                    int max = CommandUtil.tryInt(args[1], "maximum", 1, 999);
 
                     GuildData guildData = bot.getOrAddGuildData(guild);
                     guildData.getLeveling().setMaxLevel(max);

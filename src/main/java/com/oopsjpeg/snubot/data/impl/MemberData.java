@@ -2,18 +2,28 @@ package com.oopsjpeg.snubot.data.impl;
 
 import com.oopsjpeg.snubot.data.ChildData;
 import com.oopsjpeg.snubot.data.DiscordData;
+import discord4j.core.object.entity.Member;
+import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.Random;
 
 public class MemberData extends DiscordData implements ChildData<GuildData>
 {
+    public static final float DAILY_COINS = 250;
+    public static final float DAILY_XP = 0.1f;
+
     private static final Random RANDOM = new Random();
 
     private transient GuildData parent;
-    private transient long lastMessageMillis;
+    private transient LocalDateTime lastMessageTime;
 
-    private int xp;
+    private float coins;
+
+    private float xp;
     private int level;
+
+    private LocalDateTime lastDailyTime;
 
     public MemberData(final String id)
     {
@@ -25,33 +35,60 @@ public class MemberData extends DiscordData implements ChildData<GuildData>
         return (int) (220 + Math.pow(level * 90, 1.06));
     }
 
-    public int getXp()
+    public Mono<Member> discord()
     {
-        return xp;
+        return parent.getParent().getGateway().getMemberById(parent.getIdAsSnowflake(), getIdAsSnowflake());
     }
 
-    public void setXp(int xp)
+    public boolean message()
     {
-        this.xp = xp;
-    }
-
-    public void addXp(int xp)
-    {
-        setXp(getXp() + xp);
-    }
-
-    public boolean messageXp()
-    {
-        if (System.currentTimeMillis() - lastMessageMillis > 60000)
+        if (lastMessageTime == null || LocalDateTime.now().isAfter(lastMessageTime.plusMinutes(1)))
         {
-            lastMessageMillis = System.currentTimeMillis();
-            addXp(24 + RANDOM.nextInt(10));
+            lastMessageTime = LocalDateTime.now();
+            addCoins(3 + RANDOM.nextInt(4));
+            addXp(24 + RANDOM.nextInt(11));
             return true;
         }
         return false;
     }
 
-    public int getMaxXp()
+    public float getCoins()
+    {
+        return coins;
+    }
+
+    public void setCoins(float coins)
+    {
+        this.coins = coins;
+    }
+
+    public void addCoins(float coins)
+    {
+        setCoins(getCoins() + coins);
+    }
+
+    public void subCoins(float coins)
+    {
+        setCoins(getCoins() - coins);
+    }
+
+    public float getXp()
+    {
+        return xp;
+    }
+
+    public void setXp(float xp)
+    {
+        this.xp = xp;
+    }
+
+    public void addXp(float xp)
+    {
+        setXp(getXp() + xp);
+        levelUp();
+    }
+
+    public float getMaxXp()
     {
         return maxXp(level);
     }
@@ -66,10 +103,10 @@ public class MemberData extends DiscordData implements ChildData<GuildData>
         this.level = level;
     }
 
-    public boolean levelUp()
+    public void levelUp()
     {
         int newLevel = level;
-        while (newLevel < 50 && this.xp >= maxXp(newLevel))
+        while (newLevel < parent.getLeveling().getMaxLevel() && this.xp >= maxXp(newLevel))
         {
             this.xp -= maxXp(newLevel);
             newLevel++;
@@ -78,10 +115,35 @@ public class MemberData extends DiscordData implements ChildData<GuildData>
         if (level != newLevel)
         {
             level = newLevel;
-            return true;
+            parent.getLeveling().syncRoles(getId());
         }
+    }
 
-        return false;
+    public void daily()
+    {
+        lastDailyTime = LocalDateTime.now();
+        addCoins(getDailyCoins());
+        addXp(getDailyXp());
+    }
+
+    public float getDailyCoins()
+    {
+        return DAILY_COINS;
+    }
+
+    public float getDailyXp()
+    {
+        return getMaxXp() * DAILY_XP;
+    }
+
+    public boolean hasDaily()
+    {
+        return lastDailyTime == null || LocalDateTime.now().isAfter(lastDailyTime.plusDays(1));
+    }
+
+    public LocalDateTime getLastDailyTime()
+    {
+        return lastDailyTime;
     }
 
     @Override
