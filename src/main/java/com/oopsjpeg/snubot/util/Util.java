@@ -46,7 +46,7 @@ public class Util
     {
         s1 = s1.toLowerCase();
         s2 = s2.toLowerCase();
-        return s1.contains(s2) || s2.contains(s1);
+        return s1.equalsIgnoreCase(s2) || (s1.length() > 3 && (s1.contains(s2) || s2.contains(s1)));
     }
 
     public static String[] buildArguments(String s)

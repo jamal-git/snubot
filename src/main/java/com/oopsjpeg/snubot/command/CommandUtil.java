@@ -22,9 +22,9 @@ public class CommandUtil
     public static TextChannel tryChannel(Guild g, String s) throws CommandException
     {
         TextChannel channel = g.getChannels().ofType(TextChannel.class)
-                .filter(r -> s.equals(r.getId().asString()) // ID
-                        || s.equals(r.getMention()) // Mention
-                        || Util.searchString(r.getName(), s)) // Name
+                .filter(c -> s.equals(c.getId().asString()) // ID
+                        || s.equals(c.getMention()) // Mention
+                        || Util.searchString(c.getName(), s)) // Name
                 .blockFirst();
         if (channel == null)
             throw new CommandException("Invalid channel specified.");

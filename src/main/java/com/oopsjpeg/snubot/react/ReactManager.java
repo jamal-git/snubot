@@ -107,7 +107,11 @@ public class ReactManager implements Manager
 
     public void remove(String id)
     {
-        messageMap.remove(id);
+        if (has(id))
+        {
+            messageMap.remove(id);
+            parent.getMongoManager().removeReactMessage(get(id));
+        }
     }
 
     public void remove(Snowflake id)
@@ -163,7 +167,7 @@ public class ReactManager implements Manager
     {
         reactMessage.getOrAddEmoji(emoji).addRole(role, type);
 
-        reactMessage.getMessage().map(m -> m.addReaction(emoji)).subscribe();
+        reactMessage.getMessage().block().addReaction(emoji).block();
     }
 
     public void removeRoleFromEmoji(ReactMessage reactMessage, ReactionEmoji emoji, Role role)

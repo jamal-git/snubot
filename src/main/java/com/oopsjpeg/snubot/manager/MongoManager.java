@@ -86,6 +86,12 @@ public class MongoManager implements Manager
         getReactMessageCollection().replaceOne(Filters.eq("_id", message.getId()), Document.parse(Snubot.GSON.toJson(message)), new ReplaceOptions().upsert(true));
     }
 
+    public void removeReactMessage(ReactMessage message)
+    {
+        Snubot.LOGGER.info("Remove react message of ID " + message.getId() + ".");
+        getReactMessageCollection().deleteOne(Filters.eq("_id", message.getId()));
+    }
+
     @Override
     public Snubot getParent()
     {

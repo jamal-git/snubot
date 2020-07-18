@@ -105,7 +105,7 @@ public class ReactIonRolesCommand implements Command
                     throw new InvalidUsageException(this, registry, "remove <role>");
 
                 Message selectedMessage = trySelectedMessage(data.getSelections(), registry, bot.getGateway()).block();
-                ReactMessage reactMessage = tryReactMessage(manager, message);
+                ReactMessage reactMessage = tryReactMessage(manager, selectedMessage);
                 Role role = CommandUtil.tryRole(guild, args[1]);
 
                 manager.removeRole(reactMessage, role);
@@ -113,7 +113,16 @@ public class ReactIonRolesCommand implements Command
 
                 channel.createEmbed(ChatUtil.success(author, "Removed **" + role.getName() + "** from all emojis on [selected message](" + data.getSelections().getMessageUrl() + ").")).block();
             }
-            else throw new InvalidUsageException(this, registry, "<select/add/remove/update>");
+            // Clear all reaction-based roles
+            else if (args[0].equalsIgnoreCase("clear"))
+            {
+                Message selectedMessage = trySelectedMessage(data.getSelections(), registry, bot.getGateway()).block();
+
+                manager.remove(selectedMessage);
+
+                channel.createEmbed(ChatUtil.success(author, "Removed all reaction-based roles from [selected message](" + data.getSelections().getMessageUrl() + ").")).block();
+            }
+            else throw new InvalidUsageException(this, registry, "<select/add/remove/clear>");
         }
     }
 

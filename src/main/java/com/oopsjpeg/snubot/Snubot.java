@@ -143,9 +143,15 @@ public class Snubot
 
     public void saveAll()
     {
-        userDataMap.values().stream().filter(SaveData::isMarkedForSave).forEach(getMongoManager()::saveUserData);
-        guildDataMap.values().stream().filter(SaveData::isMarkedForSave).forEach(getMongoManager()::saveGuildData);
-        getReactManager().getMessageMap().values().stream().filter(SaveData::isMarkedForSave).forEach(getMongoManager()::saveReactMessage);
+        userDataMap.values().stream().filter(SaveData::isMarkedForSave)
+                .peek(d -> d.setMarkedForSave(false))
+                .forEach(getMongoManager()::saveUserData);
+        guildDataMap.values().stream().filter(SaveData::isMarkedForSave)
+                .peek(d -> d.setMarkedForSave(false))
+                .forEach(getMongoManager()::saveGuildData);
+        getReactManager().getMessageMap().values().stream().filter(SaveData::isMarkedForSave)
+                .peek(d -> d.setMarkedForSave(false))
+                .forEach(getMongoManager()::saveReactMessage);
     }
 
     public GatewayDiscordClient getGateway()
