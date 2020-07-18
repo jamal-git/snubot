@@ -30,20 +30,54 @@ public class LogCommand implements Command
         {
             GuildData data = bot.getGuildData(guild);
             if (data == null || !data.getLogging().hasChannel())
-                throw new InvalidUsageException(this, registry, "<channel>");
+                throw new InvalidUsageException(this, registry, "<channel/ignore/unignore>");
 
             channel.createEmbed(ChatUtil.info(author, "The current log channel is **" + data.getLogging().getChannel().block().getName() + "**.")).block();
         }
-        // Set the moderator role
+        // Perform a log command
         else
         {
-            TextChannel logChannel = CommandUtil.tryChannel(guild, String.join(" ", args));
+            if (args[0].equalsIgnoreCase("channel"))
+            {
+                if (args.length < 2)
+                    throw new InvalidUsageException(this, registry, "channel <channel>");
+                TextChannel logChannel = CommandUtil.tryChannel(guild, args[1]);
+                GuildData data = bot.getOrAddGuildData(guild);
 
-            GuildData data = bot.getOrAddGuildData(guild);
-            data.getLogging().setChannel(logChannel);
-            data.markForSave();
+                data.getLogging().setChannel(logChannel);
+                data.markForSave();
 
-            channel.createEmbed(ChatUtil.success(author, "Set the log channel to **" + logChannel.getName() + "**.")).block();
+                channel.createEmbed(ChatUtil.success(author, "Set the log channel to **" + logChannel.getName() + "**.")).block();
+            }
+            else if (args[0].equalsIgnoreCase("ignore"))
+            {
+                if (args.length < 2)
+                    throw new InvalidUsageException(this, registry, "ignore <channel>");
+                TextChannel ignore = CommandUtil.tryChannel(guild, args[1]);
+                GuildData data = bot.getOrAddGuildData(guild);
+
+                data.getLogging().addIgnoredChannel(ignore);
+                data.markForSave();
+
+                channel.createEmbed(ChatUtil.success(author, "Added **" + ignore.getName() + "** to ignored channels.")).block();
+            }
+            else if (args[0].equalsIgnoreCase("unignore"))
+            {
+                if (args.length < 2)
+                    throw new InvalidUsageException(this, registry, "unignore <channel>");
+                TextChannel unignore = CommandUtil.tryChannel(guild, args[1]);
+
+                GuildData data = bot.getOrAddGuildData(guild);
+                if (!data.getLogging().hasIgnoredChannel(unignore))
+                    throw new CommandException("That channel is not being ignored.");
+
+                data.getLogging().removeIgnoredChannel(unignore);
+                data.markForSave();
+
+                channel.createEmbed(ChatUtil.success(author, "Added **" + unignore.getName() + "** from ignored channels.")).block();
+            }
+            else
+                throw new InvalidUsageException(this, registry, "<channel/ignore/unignore>");
         }
     }
 

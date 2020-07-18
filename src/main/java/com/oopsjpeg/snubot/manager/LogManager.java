@@ -40,7 +40,7 @@ public class LogManager implements Manager
         if (guild == null || !parent.hasGuildData(guild)) return;
 
         GuildData data = parent.getGuildData(guild);
-        if (!data.getLogging().hasChannel()) return;
+        if (!data.getLogging().hasChannel() || data.getLogging().hasIgnoredChannel(channel)) return;
 
         TextChannel logChannel = data.getLogging().getChannel().block();
         if (channel.equals(logChannel)) return;
@@ -66,7 +66,7 @@ public class LogManager implements Manager
         if (guild == null || !parent.hasGuildData(guild)) return;
 
         GuildData data = parent.getGuildData(guild);
-        if (!data.getLogging().hasChannel()) return;
+        if (!data.getLogging().hasChannel() || data.getLogging().hasIgnoredChannel(channel)) return;
 
         TextChannel logChannel = data.getLogging().getChannel().block();
         if (channel.equals(logChannel)) return;

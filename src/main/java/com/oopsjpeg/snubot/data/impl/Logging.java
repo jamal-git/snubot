@@ -5,11 +5,66 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.channel.TextChannel;
 import reactor.core.publisher.Mono;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Logging implements ChildData<GuildData>
 {
+    private final Set<String> ignoredChannelIds = new HashSet<>();
+
     private transient GuildData parent;
 
     private String channelId;
+
+    public Set<String> getIgnoredChannelIds()
+    {
+        return ignoredChannelIds;
+    }
+
+    public void addIgnoredChannelId(String channelId)
+    {
+        ignoredChannelIds.add(channelId);
+    }
+
+    public void addIgnoredChannelId(Snowflake channelId)
+    {
+        addIgnoredChannelId(channelId.asString());
+    }
+
+    public void addIgnoredChannel(TextChannel channel)
+    {
+        addIgnoredChannelId(channel.getId());
+    }
+
+    public void removeIgnoredChannelId(String channelId)
+    {
+        ignoredChannelIds.remove(channelId);
+    }
+
+    public void removeIgnoredChannelId(Snowflake channelId)
+    {
+        removeIgnoredChannelId(channelId.asString());
+    }
+
+    public void removeIgnoredChannel(TextChannel channel)
+    {
+        removeIgnoredChannelId(channel.getId());
+    }
+
+    public boolean hasIgnoredChannelId(String channelId)
+    {
+        return ignoredChannelIds.contains(channelId);
+    }
+
+    public boolean hasIgnoredChannelId(Snowflake channelId)
+    {
+        return hasIgnoredChannelId(channelId.asString());
+    }
+
+    public boolean hasIgnoredChannel(TextChannel channel)
+    {
+        return hasIgnoredChannelId(channel.getId());
+    }
 
     public String getChannelId()
     {
@@ -45,6 +100,7 @@ public class Logging implements ChildData<GuildData>
     {
         return getChannelId() != null;
     }
+
 
     @Override
     public GuildData getParent()
