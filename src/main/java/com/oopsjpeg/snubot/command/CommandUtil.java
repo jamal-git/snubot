@@ -45,16 +45,21 @@ public class CommandUtil
 
     public static int tryInt(String s, String type, int min, int max) throws CommandException
     {
-        try
-        {
-            int i = Integer.parseInt(s);
-            if (i < min || i >= max)
-                throw new NumberFormatException();
-            return i;
-        }
-        catch (NumberFormatException ignored)
-        {
-            throw new CommandException("Invalid " + type + " specified.");
-        }
+        int i = tryInt(s, type);
+        if (i < min)
+            throw new CommandException("Invalid " + type + " specified. Value cannot be less than " + min + ".");
+        if (i > max)
+            throw new CommandException("Invalid " + type + " specified. Value cannot be more than " + max + ".");
+        return i;
+    }
+
+    public static int tryIntMin(String s, String type, int min) throws CommandException
+    {
+        return tryInt(s, type, min, Integer.MAX_VALUE);
+    }
+
+    public static int tryIntMax(String s, String type, int max) throws CommandException
+    {
+        return tryInt(s, type, Integer.MIN_VALUE, max);
     }
 }

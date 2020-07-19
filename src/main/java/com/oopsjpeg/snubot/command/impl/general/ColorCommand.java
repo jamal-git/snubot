@@ -92,7 +92,7 @@ public class ColorCommand implements Command
             }
             else
             {
-                int level = args[1].equalsIgnoreCase("none") ? 0 : CommandUtil.tryInt(args[1], "level", 1, 999) - 1;
+                int level = args[1].equalsIgnoreCase("none") ? 0 : CommandUtil.tryIntMin(args[1], "level", 1) - 1;
 
                 data.getColoring().setLevelRequired(level);
                 data.markForSave();

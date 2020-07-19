@@ -52,12 +52,12 @@ public class LevelCommand implements Command
 
                 GuildData guildData = bot.getOrAddGuildData(guild);
                 Role role = CommandUtil.tryRole(guild, args[1]);
-                int level = CommandUtil.tryInt(args[2], "level", 1, guildData.getLeveling().getMaxLevel() + 1);
+                int level = CommandUtil.tryInt(args[2], "level", 1, guildData.getLeveling().getMaxLevel() + 1) - 1;
 
                 guildData.getLeveling().addRole(role, level);
                 guildData.markForSave();
 
-                channel.createEmbed(ChatUtil.success(author, "Added **" + role.getName() + "** to level **" + level + "** in **" + guild.getName() + "**.")).block();
+                channel.createEmbed(ChatUtil.success(author, "Added **" + role.getName() + "** to level **" + (level + 1) + "** in **" + guild.getName() + "**.")).block();
             }
             // Remove a level-based role
             else if (args[0].equalsIgnoreCase("removerole"))
@@ -87,7 +87,7 @@ public class LevelCommand implements Command
 
                 channel.createEmbed(ChatUtil.info(author, guildData.getLeveling().getRoleMap().values().stream()
                         .sorted(Comparator.comparingInt(LevelRole::getLevel))
-                        .map(i -> "Level " + i.getLevel() + ": " + guildData.getLeveling().getRolesForLevel(i.getLevel()).stream()
+                        .map(i -> "Level " + (i.getLevel() + 1) + ": " + guildData.getLeveling().getRolesForLevel(i.getLevel()).stream()
                                 .map(Role::getName)
                                 .collect(Collectors.joining(", ")))
                         .collect(Collectors.joining("\n")))).block();
@@ -114,7 +114,7 @@ public class LevelCommand implements Command
                 }
                 else
                 {
-                    int max = CommandUtil.tryInt(args[1], "maximum", 1, 999);
+                    int max = CommandUtil.tryIntMin(args[1], "max level", 1);
 
                     GuildData guildData = bot.getOrAddGuildData(guild);
                     guildData.getLeveling().setMaxLevel(max);
